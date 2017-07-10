@@ -1,0 +1,1350 @@
+\documentclass[sigconf,anonymous]{acmart}
+\setcopyright{rightsretained}
+
+\usepackage{listings}
+\usepackage{dirtree}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{float}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bbm}
+\usepackage[scientific-notation=true]{siunitx}
+
+\usepackage{amssymb}
+\usepackage{tabulary}
+
+\usepackage{etoolbox}
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\makeatletter
+\newcommand\fs@norules{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@ruled
+  \def\@fs@pre{}%
+  \def\@fs@post{}%
+  \def\@fs@mid{\kern3pt}%
+  \let\@fs@iftopcapt\iftrue}
+\makeatother
+\floatstyle{norules}
+\restylefloat{algorithm}
+
+\let\tinymatrix\smallmatrix
+\let\endtinymatrix\endsmallmatrix
+\patchcmd{\tinymatrix}{\scriptstyle}{\scriptscriptstyle}{}{}
+\patchcmd{\tinymatrix}{\scriptstyle}{\scriptscriptstyle}{}{}
+\patchcmd{\tinymatrix}{\vcenter}{\vtop}{}{}
+\patchcmd{\tinymatrix}{\bgroup}{\bgroup\scriptsize}{}{}
+
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+
+\usepackage[draft,index]{fixme}
+\fxsetup{theme=color,mode=multiuser,layout=inline,draft}
+
+\acmConference[SC’17]{Supercomputing Conference}{November 12 -- 17}{Denver , Colorado, USA}
+
+% correct bad hyphenation here
+%\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10010940.10010971.10010980.10010986</concept_id>
+<concept_desc>Software and its engineering~Massively parallel systems</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010169</concept_id>
+<concept_desc>Computing methodologies~Parallel computing methodologies</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010257.10010282.10010284</concept_id>
+<concept_desc>Computing methodologies~Online learning settings</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~Massively parallel systems}
+\ccsdesc[300]{Computing methodologies~Parallel computing methodologies}
+\ccsdesc[300]{Computing methodologies~Online learning settings}
+
+
+\keywords{Multi-Armed Bandits, EASY-Backfilling, Parallel Job Scheduling, High
+Performance Computing, Simulation.}
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+\title{Online (Bandit) Policy Selection for EASY-Backfilling}
+
+\author{Eric Gaussier}
+\affiliation{%
+  \institution{Univ. Grenoble Alpes, CNRS, Grenoble INP, LIG}
+  \country{France}}
+\email{eric.gaussier@imag.fr}
+\author{J\'er\^ome Lelong}
+\affiliation{%
+  \institution{Univ. Grenoble Alpes, Inria, CNRS, Grenoble INP, LJK}
+  \country{France}}
+\email{jerome.lelong@imag.fr}
+\author{Valentin Reis}
+\affiliation{%
+  \institution{Univ. Grenoble Alpes, Inria, CNRS, Grenoble INP, LIG}
+  \country{France}}
+\email{valentin.reis@imag.fr}
+\author{Denis Trystram}
+\affiliation{%
+  \institution{Univ. Grenoble Alpes, Inria, CNRS, Grenoble INP, LIG}
+  \country{France}}
+\email{denis.trystram@imag.fr}
+
+\begin{abstract}
+
+  The EASY-FCFS heuristic is the basic building block of job scheduling
+  policies in most parallel High Performance Computing platforms. Despite
+  its good properties (simplicity, no starvation), it could still be improved
+  on a per-system basis. This tuning process is difficult because of
+  non-linearities in the scheduling process. The study proposed here considers
+  an online approach to the automatic tuning of the EASY heuristic for HPC
+  platforms. More precisely, we consider the problem of selecting a reordering
+  policy for the job queue under several feedback modes. We show via a
+  comprehensive experimental campaign that noisy feedback (using a weak
+  simulator) recovers existing in-hindsight results that allow to divide the
+  average waiting time by almost 2. Moreover, we show that bandit feedback can
+  be used by an epsilon-greedy algorithm to cut the average waiting time by
+  40\% without using a simulator.
+
+\end{abstract}
+
+\maketitle
+
+
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Context}
+
+Providing the computational infrastuctures needed to solve actual complex
+problems arising in the various fields of modern society (including climate
+change, health, green energy or security) is a strategic challenge. The main
+pillar to the answer is to build extreme-scale parallel and
+distributed platforms. The never-ending race for more computing power and
+storage capacity leads to sophisticated specific Exascale platforms, and the
+objective of the community is to design efficient sustained Petascale
+platforms. This large-scale evolution and the increasing complexity in both
+architecture and applications create many scientific and technical problems.
+Accordingly, system management software still has a long way to go. The
+existing job and resource management software allow to run tens of thousands of
+jobs on hundreds of thousands of cores. These software are based on robust
+policies with positive properties such as relative simplicity and prevention of
+job starvation. However, there is still room for improvement. Here, we propose
+to study how to tune the ordering of the submission queues in the frame of the
+classical EASY-Backfilling family of heuristics using two new online approaches.
+One approach is based on a simulator and the second uses a multi-armed bandit
+algorithm.
+
+Most common work in the literature consider \textit{a posteriori} optimization
+of a scheduling algorithm on a (actual) data set.  The increasing amount and
+diversity of data generated by large scale platforms motivate the community to
+study more sophisticated policies that could leverage these data.  During the
+last few years, there was an explosion in the number of works at the interface
+of the HPC and Big Data fields, dealing with learning algorithms. Recent
+sophisticated approaches developed \textit{ad hoc} supervised machine learning
+algorithms for reducing uncertainty in problem parameters (e.g.\ job execution
+times, memory requirements, etc.). However, only few studies
+evaluate the impact of such techniques on the performances of the resource
+manager.
+
+Unlike most existing studies, which consider the learning of specific
+parameters of a trace, we provide algorithms that use feedback from the
+system in order the whole behavior online. Our focus is
+to learn how the platform behaves within the usual framework of
+EASY-Backfilling described in Section~\ref{sec:rw} . More precisely, we provide strategies for choosing the most
+appropriate queue reordering policy to be used for job selection. This approach
+is assessed by an extensive resampling-based experimental campaign that uses 7
+actual traces.
+
+\subsection{Contributions}
+
+Our main contribution is to investigate two original methods for learning a
+good scheduling policy on a per-system basis. In this work, we focus on the
+average waiting time of the jobs. Each method aims at choosing the best queue
+reordering policy in a fixed search set of semantically diverse options.
+
+The first method, \textbf{full feedback}, continuously uses simulation on data gathered
+from the past and current system workload. In order to reflect the
+uncertainties in the data, we also evaluate a more realistic "noisy" variant in
+which simulations are imprecise.
+
+The second method, \textbf{bandit feedback}, is a simulator-less approach based on a
+multi-armed bandit algorithm, which derives feedback by measuring system
+performance.
+
+Both of these methods are evaluated with a specifically developed simulator,
+which is open-sourced and packaged for the community.
+
+
+Our main results are as follows: The approach based on the simulator provides
+very good results, close to the best policy in the search set. In essence, we
+are able to recover in an online fashion existing results that reduce average
+waiting times by 11\% to 60\% compared to EASY-FCFS.  Indeed, we show
+that the required sample sizes for policy selection in batch schedulers are
+small enough to avoid workload resampling in practice. The variant
+based on noisy data, which is closer to the actual conditions of uncertainties on
+both jobs and platform, behaves similarly. The alternate approach based on
+a multi-armed bandit also provides reasonable results at a much lower cost,
+reducing the average waiting times by 8\% to 46\% compared to
+EASY-FCFS.
+
+Let us emphasize the main results of this study: While the First-Come,
+First-Serve approach to minimizing the waiting times is a common default
+strategy, it can definitively be outperformed.  We show how to automate selection
+of a good alternative policy in two cases (depending on whether a simulator is
+available or not), and provide the difference in performance to be expected
+between both situations.
+
+\section{Related Work}
+\label{sec:rw}
+
+This section presents and discusses the most significant results related to job
+scheduling and learning algorithms in this context.  Let us start by recalling
+some basics about scheduling heuristics in HPC platforms:
+
+Parallel job scheduling is a old studied theoretical
+problem~\cite{Frachtenberg:2009:JSS:1692356,Feitelson:2004:PJS:2128864.2128865}
+whose practical ramifications, varying hypotheses, and inherent uncertainty of
+the problem applied to the HPC field have driven practitioners to use simple
+heuristics (and researchers to study their behavior). The two most popular
+heuristics for HPC platforms are EASY~\cite{easy} and
+Conservative~\cite{Mu'alem:2001:UPW:380314.380315} backfilling.
+
+While Conservative Backfilling offers many advantages~\cite{bfchar}, it has a
+significant computational overhead, which mainly explains why most of the
+machines of the top500 ranking~\cite{top500} rather use a variant of EASY-Backfilling
+instead.  There is a large body of work seeking to improve/tune EASY. Indeed,
+while the basic mechanism is used by some actual resource and job management
+software (most notably SLURM~\cite{SLURMdocSCHED}), this is seldom done
+without fine tuning by system administrators.
+
+The original EASY mechanism refers to a First-Come-First-Serve basis.  Several
+works explore how to tune EASY by reordering waiting and/or backfilling
+queues~\cite{Tsafrir_easypp_2005}, sometimes even in a randomized
+manner~\cite{1592720}, as well as some implementations~\cite{Jackson2001}.
+However, as successful as they may be, these works do not address the
+dependency of scheduling metrics on the workload~\cite{variability}.
+These studies most often report \textit{post-hoc} performance since they
+compare algorithms after the workload is known.
+
+The dynP scheduler~\cite{streit_selftuning_2002} proposes a systematic method
+to tuning these queues. Although it requires simulated scheduling runs at
+decision time and therefore, making it much more than the natural execution of
+EASY.
+
+\subsection{Data-aware resource management.}
+
+There was a recent focus on leveraging the huge amount of data available in
+large scale computing platforms to improve system performance. Some
+works use collaborative filtering to co-locate tasks in clouds by estimating
+application interference~\cite{7516031}. Some others are closer to the
+application level. For instance, ~\cite{fmodeling} uses binary classification
+to distinguish benign memory faults from application errors so as to execute
+recovery algorithms.
+
+Several works use similar techniques in the context of HPC, in
+particular~\cite{Tsafrir_easypp_2005,learningruntimes}, hoping that better job
+runtime estimations should improve the scheduling~\cite{chiang_impact_2002}.
+Some algorithms estimate runtime distributions model and choose jobs using
+probabilistic integration procedures~\cite{Nissimov2008}.  However, these works
+do not address the duality between the cumulative and maximal scheduling costs,
+as mentioned in~\cite{learningruntimes}. While these previous works intend to
+estimate uncertain parameters, we consider here a more pragmatic approach,
+that directly learns a good scheduling policy from a given policy space.
+
+Existing work~\cite{jsspp17} takes this approach offlines, by
+splitting workload data in a training/testing fashion. This work studies
+EASY-Backfilling and shows that the relative performance of some well-known
+priority orders for starting jobs differs between workloads, but is relatively
+stable over time for a given workload.
+
+\subsection{Multi-Armed Bandits.}
+
+A multi-armed bandit (MAB) problem is a sequential allocation problem with
+partially observable rewards. At every round, an action (represented by an arm
+of the Bandit) must be chosen from a fixed set and the corresponding reward is
+observed. The goal of a MAB algorithm is to maximize the total reward obtained
+in a successive number of rounds. There exist multiple works addressing this
+problem under a variety of constraints, The two most popular settings are the
+original stochastic  case and the adversarial case. See~\cite{thompson} for the
+original work on the stochastic case and~\cite{Auer2002} for the "Upper
+Confidence Bound" family of algorithms. To the best of our knowledge, the work
+of~\cite{Banos} is the earliest for the adversarial case; see~\cite{nonstoch}
+for the "Exponential-weight" family of algorithms. We refer to~\cite{bubnow}
+for a comprehensive review of the field. While these algorithms bound the
+cumulative difference in loss to the best arm (the regret), they have
+functional constraints such as the fact that the rewards should be contained in
+a range. The simple heuristic called \textit{Epsilon-Greedy} introduced
+in~\cite{Auer2002} does not have this requirement.  This heuristic will be used
+in this paper and is described in Subsection~\ref{sub:bandit}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Problem setting}
+\label{sec:problem_setting}
+
+%This section presents the systems under study and the scheduling problem.  It
+%first introduces the EASY-Backfilling heuristic and gives \todo{fix} the
+%problem statement.
+
+\subsection{System Description}
+\label{sub:sysdesc}
+
+The crucial part of batch scheduling software is the scheduling algorithm that
+determines where and when the submitted jobs are executed. The process is as
+follows: jobs are submitted by end-users and queued until the scheduler selects
+one of them for running. Each job has a provided bound on the execution time
+and some resource requirements (number and type of processing units). Then, the
+Resource and Job Management System (RJMS) drives the search for the resources required to execute this job. Finally,
+the tasks of the job are assigned to the chosen nodes.
+
+In the classical case, the management software needs to execute a set of
+concurrent parallel jobs with rigid (known and fixed) resource requirements on
+a HPC platform represented by a pool of $m$ identical resources. This is an
+on-line problem since the jobs are submitted over time and their
+characteristics are only known when they are released.  Below is the brief
+description of the characteristics of job
+$j$:
+
+\begin{itemize}
+
+   \item Submission date $r_j$ (also called \textit{release date})
+
+   \item Resource requirement $q_j$ (number of processors)
+
+   \item Actual running time $p_j$ (sometimes called \textit{processing time})
+
+   \item Requested running time $\widetilde{p_j}$ (sometimes called
+     \textit{walltime}), which is an upper bound of $p_j$.
+
+\end{itemize}
+
+The resource requirement $q_j$ of job $j$ is known when the job is submitted at
+time $r_j$, while the requested running time $\widetilde{p_j}$ is given by the
+user as an estimate. Its actual value $p_j$ is only known \textit{a posteriori}
+when the job really completes.  Moreover, the users have incentive to
+over-estimate the actual values, since jobs may be ``killed'' if they surpass
+the provided value.
+
+\subsection{Brief Description of EASY Backfilling}
+\label{sub:easy}
+
+The selection of the job to run is performed according to a scheduling policy,
+which determines the order the jobs are executed. EASY-Backfilling is
+the most widely used policy due to its simple and robust implementation and
+known benefits such as high system utilization~\cite{easy}. This strategy has
+no worst case guarantee beyond the absence of starvation (i.e.\ every job will
+be scheduled at some moment).
+
+EASY-FCFS uses a job queue to select and backfill jobs.  At any
+time a scheduling decision is required (i.e.\ job submission or termination),
+the scheduler goes through the job queue in First-Come,First-Serve (FCFS) order
+and starts jobs until it finds a job that can not be started right away. Then,
+it makes a reservation for this job at the earliest predictable time and
+starts \textit{backfilling} the job queue in FCFS order using any job that
+does not delay the unique reservation.
+
+\subsection{Scheduling Objective}
+\label{sub:scheduling_objectives}
+
+A system administrator may use one or multiple cost metric(s). Our study of
+scheduling performance relies on the waiting times of the jobs, which is one of
+the more commonly used objectives.
+
+     \begin{equation}
+       \textbf{Wait}_j =  start_j-r_j
+     \end{equation}
+
+Like other cost metrics, the waiting time is usually considered in its
+\textit{cumulative} version, which means that one seeks to minimize the average
+waiting time. It is worth noting that other metrics such as the maximum waiting
+time of all the jobs are also worthy of interest. Unfortunately, this criteria
+is antagonistic in nature with the average waiting time. Section~\ref{sub:th}
+will outline our approach to address the bi-objective aspect of this problem.
+
+\section{Tuning EASY by reordering and thresholding the job queue}
+\label{sec:framework}
+
+This section presents two mechanisms for safely tuning the EASY-Backfilling:
+job queue reordering and job thresholding. Together, these two building blocks
+make a robust framework for tuning EASY.
+
+\subsection{Reordering the job Queue}
+\label{subsec:policies}
+
+The EASY heuristic uses a job queue to select and backfill jobs. While this job
+queue is ordered in FCFS order in the original heuristic, it is possible to
+reorder it at will. We settle on a reasonable search space of 10 reordering policies.
+
+\begin{enumerate}
+  \item FCFS: First-Come First-Serve, which is the most commonly used policy~\cite{easy}.
+  \item LCFS: Last-Come First-Serve.
+  \item SPF: Smallest estimated Processing time $\widetilde{p_{j}}$ First ~\cite{bfchar}.
+  \item LPF: Longest estimated Processing time First.
+  \item LQF: Largest resource requirement $q_j$ First.
+  \item SQF: Smallest resource requirement First.
+  \item LEXP: Largest Expansion Factor First~\cite{bfchar}, where the expansion
+    factor is defined as follows:
+  \begin{equation} \frac{start_j - r_j + \widetilde{p_j}}{\widetilde{p_j}} \end{equation}
+  where $start_j$ is the starting time of job $j$.
+  \item SEXP: Smallest Expansion Factor First
+  \item LRF: Largest Ratio $\frac{\widetilde{p_j}}{q_j}$ First
+  \item SRF: Smallest Ratio First
+  \item LAF: Largest Area $ \widetilde{p_j} \times q_j$ First
+  \item SAF: Smallest Area First
+\end{enumerate}
+
+This search space is designed with the goal of being as semantically diverse as
+possible without making any judgement on which policy should perform well in
+practice. In the following, we denote these policies by $P_i$ with $i = 1
+\ldots 12$.
+
+\subsection{Thresholding}
+\label{sub:th}
+
+Reordering the job queue means losing the no-starvation guarantee and some
+individual jobs therefore can wait an undue amount of time. It is possible to
+introduce a thresholding mechanism to prevent this behavior: When a
+queued job's waiting time exceeds a fixed threshold $\Theta$, it is
+at the head of the queue. We denote by EASY($P,\Theta$) the scheduling
+policy that starts and backfill jobs according to the (thresholded) reordering
+policy $P$. For the sake of completeness, Algorithm~\ref{alg:EASY} describes
+the EASY($P,\Theta$) heuristic.
+
+\begin{algorithm}[]
+  \caption{EASY($P,\Theta$) policy}
+  \begin{algorithmic}[1]
+    \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+    \renewcommand{\algorithmicensure}{\textbf{Output:}}
+    \REQUIRE Queue $Q$ of waiting jobs.
+    \ENSURE None (calls to $Start()$)
+    \STATE Sort $Q$ according to $P_R$
+    \STATE Move all jobs of $Q$ for which $wait_j > \Theta$ ahead
+    of the queue (breaking ties in FCFS order).
+    \\ \textit{//Starting jobs until the machine is full}
+    \FOR {job $j$ in Q}
+    \IF {$j$ can be started given the current system use}
+    \STATE Pop $j$ from Q
+    \STATE $Start(j)$
+    \ELSE
+    \STATE Reserve $j$ at the earliest
+    time possible according to the estimated running times
+    of the currently running jobs.
+    \\ \textit{//Backfilling jobs}
+    \FOR {job $j'$ in $Q\setminus\{j\}$}
+    \IF {$j'$ can be started without delaying $j$'s reservation.}
+    \STATE Pop $j'$ from $Q$
+    \STATE $Start(j')$
+    \ENDIF
+    \ENDFOR
+    \STATE \textbf{break}
+    \ENDIF
+    \ENDFOR
+  \end{algorithmic}
+  \label{alg:EASY}
+\end{algorithm}
+
+
+\section{Online tuning}
+\label{sec:online}
+
+\begin{figure*}[]
+  \centering
+  \includegraphics[scale=0.6]{figures/variability.pdf}
+
+  \caption{Variability in the weekly average waiting time in the KTH-SP2 trace
+  (see Subsection~\ref{sub:traces}) for 7 different policies with $\Theta = 0$. The policy set is
+  reduced as not to obstruct the figure.}
+
+  \label{fig:variability}
+\end{figure*}
+
+Here, we present the strategies we have retained for selecting a policy. We will
+refer to the period during which a selected policy is applied as the
+\textit{policy period} and will denote the length of this period as $\Delta$.
+The time interval is thus divided into periods of equal lengths ($\Delta$):
+$\Delta_0, \cdots, \Delta_T$, where $T$ is the index of the current policy
+period. A new policy is selected at the beginning of each period and applied
+during the whole period.
+
+We further assume that there is a certain regularity among periods, i.e.\ that
+the distribution of the job submission process does not radically differ
+between consecutive periods. This assumption is validated in the study
+presented in~\cite{jsspp17}. It further entails that the behavior of a policy
+during the previous periods reflects its behavior on the current one, so that
+the selection of a policy can be based on its past behavior. However, there may
+be some variability between different periods for certain cost
+metrics~\cite{feitelson2001metrics}. This is illustrated in
+Figure~\ref{fig:mosn} which displays the average waiting time of various
+policies for the KTH-SP2 trace (see~\ref{sub:traces} for a description of the
+workloads) using weekly periods encompassing one year. As one can note, the
+average waiting time varies a lot from one week to the other, for all the 7
+policies considered. This indicates that when the cost metric is averaged
+over different periods, there is a trade-off to find in between longer periods
+that would somehow limit the variability, and shorter ones that yield more
+values for the estimation. We will come back to this issue below.
+
+The selection of a policy is reminiscent of reinforcement learning.  It is
+important to note, however, that a pure reinforcement learning approach is
+difficult to develop in our context. Indeed, while we have outlined a reduced
+action space, the state space to consider is infinite. This is not prohibitive
+\textit{per se}, as modern methods~\cite{aprl} can bypass dimensionality issues
+via function approximation. However, these methods rely on large amounts of
+data, and we are studying online methods\footnote{The reinforcement learning literature
+  uses the term "\textit{on-policy}" for these methods.}. We rely here on
+  simpler, yet we believe more effective, strategies to solve this problem.
+  These strategies are applied online and rely on exact simulation, noisy
+  simulation and $\epsilon$-greedy bandit exploration.
+
+\subsection{Policy selection with exact simulation}
+\label{sub:feedback}
+
+Several simulators have been developed for "playing" reordering policies on a
+given set of jobs. We rely in this study on a lightweight simulator (see
+Section~\ref{sec:experiments}) that can efficiently simulate different
+policies. Such simulators are interesting inasmuch as they provide an estimate
+of the cost of a given policy on a set of jobs, as described below.
+
+Let $l(\Delta_t)$ denote the number of jobs \textit{submitted} during the
+period $\Delta_t$ ($0 \le t < T$), and $P_i$ ($1 \le i \le 12$) one reordering
+policy (defined in Section~\ref{subsec:policies}). The cost of policy $P_i$
+during period $\Delta_t$ is defined as:
+%
+\begin{equation} \label{eq:cost-exact} w_{\mbox{exact}}(t;P_i) =
+\sum_{j=1}^{l(\Delta_t)} \mbox{Wait}_j^{P_i} \end{equation}
+%
+where $\mbox{Wait}_j^{P_i}$ denotes the estimate provided by the simulator of
+the waiting time for job $j$ according to policy $P_i$. The estimation of the
+cost of a policy over all the periods preceding the current period can then be
+defined as:
+%
+\begin{equation} \label{eq:tot-cost-exact} w(\rightarrow T;P_i) =
+\sum_{t=0}^{T-1} \lambda^{T-1-t} w_{\mbox{exact}}(t;P_i) \end{equation}
+%
+wheret$\lambda \in [0,1]$ is a decay parameter that can be used to privilege recent
+history (\textit{i.e.} recent periods). One then selects the policy $P$ that
+minimizes the above cost for the period $\Delta_T$:
+%
+\begin{equation} \label{eq:select-exact} P = \mbox{argmin}_{P_i, 1 \le i \le
+12} w(\rightarrow T;P_i) \end{equation}
+
+The above cost directly corresponds to the cumulative waiting time of the
+policy over the preceding periods (more precisely to the cumulative simulated
+estimate of the waiting time of the policy over the preceding periods) so that
+the length of the period has little impact here. The only bias comes from the
+boundary states of the simulation. Indeed, we run simulations from an empty
+system and wait for the system to be empty when job submissions cease at the
+end of the submission period.
+
+Furthermore, in the context of this study and as detailed in
+Section~\ref{sec:experiments}, we rely on averages over several execution
+traces in order to obtain reliable estimate of the behavior of different
+policies and policy selection strategies. Such traces are typically obtained by
+simulation. Using the same simulator for generating the traces and estimating
+the cost as defined in Eqs \eqref{eq:cost-exact} and \eqref{eq:tot-cost-exact}
+would however be too optimistic and would represent an upper bound on what can
+be achieved by a selection strategy based on simulation. In order to have a
+more realistic estimate of the behavior of a selection strategy based on
+simulation, we introduce noise in the simulator, as described below.
+
+\subsection{Policy selection with noisy simulation}
+\label{sub:noisy}
+
+In order to simulate how the simulation strategy for selecting policies would
+work on non simulated traces, we randomly introduce noise in the estimate of
+the policy cost defined by Eq.~\eqref{eq:cost-exact} by rescaling it, either
+down or up:
+%
+\begin{equation} \label{eq:cost-noisy} w_{\mbox{noisy}}(t;P_i) =
+ \rho \sum_{j=1}^{l(\Delta_t)} \, \mbox{Wait}_j^{P_i} \end{equation}
+%
+where $\rho$ is uniformly sampled in the interval $[0.80,1.20]$, thus adding a
++/-20\% noise on the waiting time estimated by the simulator. The overall cost
+is then defined in the same way as before, leading to:
+%
+\begin{equation} \label{eq:tot-cost-noisy} w(\rightarrow T;P_i) =
+\sum_{t=0}^{T-1} \lambda^{T-1-t} w_{\mbox{noisy}}(t;P_i) \end{equation}
+%
+As before (see Eq.~\ref{eq:select-exact}), the policy that minimizes the above
+cost is selected for the period $\Delta_T$.
+
+Instead of introducing noise in the output of the simulator when selecting the
+policy, one could have introduced it when collecting the execution traces. Our choice
+to add the noise after the simulation step is motivated by simplicity. As we
+will see in Section~\ref{sec:experiments}, there is little difference between
+the two selection methods, which is an important result of our study.
+
+Lastly, as before, the length of the period has little impact here as the cost
+metric corresponds to the cumulative simulated waiting time for each policy.
+
+\subsection{Policy selection with $\epsilon$-greedy exploration}
+\label{sub:bandit}
+
+The previous strategies estimate the cost of all policies over all previous
+periods; the best policy according to this cost is then selected for the
+current period, the costs of all policies being updated for the next period.
+This is interesting as one maintains a complete knowledge of all policies over
+time. However, this requires computing many estimates at each period (as many
+as there are policies), which can be time consuming or cumbersome even with
+lightweight simulators.
+
+Thus, we explore here a more efficient strategy that dispenses with estimating
+the cost of all policies at a given time and only updates the cost of the
+policy that is currently being used. This strategy makes use of the
+$\epsilon$-greedy exploration method, standard in reinforcement learning
+\cite{Watkins:1989} and bandit problems~\cite{Auer2002}, to trade-off
+exploitation and exploration, and relies, as before, on past estimates of the
+cost to select the best policy in the exploitation mode.
+
+Let $l(\Delta_t)$ denote this time the number of jobs \textit{finished} during
+the period $\Delta_t$. We define the cost of policy $P_i$ during period
+$\Delta_t$ as:
+%
+\[ w_{\epsilon}(t;P_i) = \left\{ \begin{array}{ll} \sum_{j=1}^{l(\Delta_t)}
+  \textbf{Wait}_j^{P_i} & \mbox{if} \, P_i \, \mbox{used during} \, \Delta_t
+  \nonumber\\ 0 & \mbox{otherwise} \end{array} \right.  \]
+%
+As one can note, the actual waiting time is used here, so that one dispenses
+with the use of a simulator for efficiency considerations. This leads to a
+faster and easier estimate of the cumulative waiting time, however only for the
+policy that is used during $\Delta_t$. Note that there is as previously a bias
+due to boundary effects in the measurement method, as we do include jobs that
+had been started before $\Delta_t$, as well as disregard jobs that were
+submitted during $\Delta_t$ but finish later.
+
+%This also explains the difference
+%between the definitions of $l(\Delta_t)$: in the previous selection strategies,
+%one relies on a simulated estimate so that jobs need not be finished during
+%$\Delta_t$, but only submitted; in contrast, to know their actual waiting time,
+%jobs need be finished during $\Delta_t$.
+
+The cost over all previous period of a policy $P_i$ is then defined as:
+%
+\begin{equation} \label{eq:tot-cost-greedy} w(\rightarrow T;P_i) =
+\frac{1}{\sum_{t=0}^{T-1} \mathbbm{1}(P_i,t) l(\Delta_t)} \sum_{t=0}^{T-1}
+\mathbbm{1}(P_i,t) \lambda^{T-1-t} w_{\epsilon}(t;P_i) \end{equation}
+%
+where $\mathbbm{1}(P_i,t) = 1$ if $P_i$ is the policy used during the period
+$\Delta_t$ and $0$ otherwise. The normalization by $\sum_{t=0}^{T-1}
+\mathbbm{1}(P_i,t) l(\Delta_t)$ is necessary to ensure that policies
+remain comparable over time. Not normalizing would favor the policy that was
+first selected, even if this choice was random. This normalization however
+entails that the size of the policy period is important: it should not be too
+large so as to avoid relying on too few points for estimating the cost, and it
+should not be too small either to avoid extreme variations between periods. As
+explained in Section~\ref{sec:experiments}, we rely in this study on periods of
+one day and one week.
+
+The selection of the policy to be used during the current time period
+$\Delta_T$ is then based on the standard $\epsilon$-greedy exploration
+strategy:
+
+%
+\begin{itemize}
+\item With probability $(1-\epsilon)$, select the policy $P$ that minimizes the cost over previous time periods (exploitation mode):
+%
+\begin{equation}
+\label{eq:select-greedy}
+P = \mbox{argmin}_{P_i, 1 \le i \le 12} w(\rightarrow T;P_i)
+\end{equation}
+%
+\item With probability $\epsilon$, select a policy $P_i, \, 1 \le i \le 12$, at random (exploration mode).
+\end{itemize}
+
+Several studies propose to decay $\epsilon$ over time, the exploration being
+less important once the estimates for the different policies are reliable
+\cite{Tokic:2010}. This strategy has however not been beneficial in our case.
+We believe this is due to the properties of the traces we use, as explained in
+Section~\ref{sec:experiments}. The $\epsilon$-greedy strategy is known to be
+outperformed in terms of regret by other classical algorithms such as the UCB
+or EXP family of algorithms. See~\cite{bubnow} for a precise definition and
+thorough treatment of this subject. These algorithms however all rely on
+pre-normalized rewards. Here, the scale of $w_{\epsilon}(t;P_i)$ is not known
+in advance. While the usual doubling tricks can be devised to go around
+sequential issues of scale with good asymptotical performance, they ruin
+performance in practice. Accordingly, we only perform experiments using the
+simple $\epsilon$-greedy method.
+
+\section{Experiments}
+\label{sec:experiments}
+
+This section compares the different approaches to policy selection via a
+comprehensive experimental campaign.  Subsection~\ref{sub:protocol} outlines
+our experimental protocol and Subsection~\ref{sub:results} contains the
+experimental results and their discussion.
+
+\subsection{Experimental Protocol}
+\label{sub:protocol}
+
+The evaluation of computer systems performance is a complex
+task. Here, the two main difficulties are choosing a simulation
+model and taking into account the variability in the average waiting times.
+This section presents our approach, which is based on lightweight simulation
+and trace resampling.
+
+\subsubsection{Traces}
+\label{sub:traces}
+
+\begin{table}[]
+  \centering
+  \ra{1.3}
+  \caption{Workload logs used in the simulations.}
+  \label{tab:logs}
+  \begin{tabular}{@{}lrrrr@{}}
+    \hline
+    Name          & Year & \# MaxProcs & \# Jobs & Duration\\
+    \hline
+    KTH-SP2       & 1996 & 100         & 28k     & 11 Months\\
+    CTC-SP2       & 1996 & 338         & 77k     & 11 Months\\
+    SDSC-SP2      & 2000 & 128         & 59k     & 24 Months\\
+    SDSC-BLUE     & 2003 & 1,152       & 243k    & 32 Months\\
+    ANL-Intrepid  & 2009 & 163840      & 68k     & 9  Months\\
+    CEA-Curie     & 2012 & 80,640      & 312k    & 3  Months\\
+    Unilu-Gaia    & 2014 & 2,004       & 51k     & 4  Months\\
+    \hline
+  \end{tabular}
+\end{table}
+
+The experimental campaign performed in this work uses a mixture of small and large
+systems from different periods. Table~\ref{tab:logs} presents the 7 logs, which
+can all be obtained from the Parallel Workload
+Archive~\cite{Feitelson20142967}. We use the
+'cleaned'\footnote{\lstinline[basicstyle=\ttfamily\color{blue}]|http://www.cs.huji.ac.il/labs/parallel/workload/logs.html#clean|}
+version of the logs as per the archive. We impose an additional filtering step
+to the workloads\footnote{This filtering step is available in the reproducible
+workflow\cite{repro} as shell script
+\lstinline[basicstyle=\ttfamily\color{blue}]|misc/strong\_filter|} in order to
+clean erroneous data:
+
+\begin{enumerate}
+
+  \item If the number of allocated or requested cores of a job  exceeds the
+    size of the machine, we remove the job;
+
+  \item If the number of allocated or requested cores is negative, we use the
+    available positive value as the request. If both are negative, we remove
+    the job;
+
+  \item If the runtime or submission time is negative, we remove the job.
+
+\end{enumerate}
+
+\subsubsection{Simulator}
+
+The choice of a simulator is a critical part of experimental validation that
+raises a trade-off between precision and runtime. High precision can be
+obtained by carefully modeling the platform and its network topology, or
+extracting information from the jobs from their sources or post-mortem logs.
+This is the approach used by high-fidelity batch scheduling simulators such as
+Batsim~\cite{batsim}. In the present work, the focus is on studying the
+EASY-Backfilling mechanism in itself, without addressing the allocation
+problem. Moreover, the experimental protocol used here requires many
+simulation runs. Therefore, we set the precision/runtime trade-off at the
+point which minimizes simulation runtimes. We discard all topological
+information relative to the platform and use the job processing times of the
+original workloads. In this setup, the processors are considered to be
+undistinguishable from each other, and jobs can be discontinuously mapped to
+any available processor on the system. During this work, we developed a
+lightweight simulator\cite{ocst} and now release it to the community along with
+this article. See the reproducibility paragraph below for more information.
+With this simulator, we are able to replay EASY-FCFS on the CEA-CURIE trace in
+33 seconds with a machine equipped with an Intel(R) Core(TM) i5-4310U CPU @
+2.00GHz. As a comparison, the Batsim simulator with network communication
+modeling disabled and no resource contiguity takes more than 7 hours to replay
+the same trace on the same hardware. The complete simulation campaign presented
+below is executed on a single Dell PowerEdge R730 in 22 hours, including input
+preparation and statistical analysis code.
+
+\subsubsection{Resampling}
+\label{ssub:resampling}
+
+Comparing algorithms in batch scheduling is made especially difficult by the
+fluctuations in commonly used metrics~\cite{jsm}. The variability in
+performance is known to outrank the available sample sizes: \textit{It is not
+enough to simply replay an algorithm using a workload trace}. Indeed, as
+presented in Figure~\ref{fig:variability}, the objective function we are using
+in this work is subject to high variability. This variability can be so extreme
+that even a time-frame of a fews years can be insufficient to compare
+scheduling algorithms. In our experience, randomly shuffling months in a trace
+at random is enough to generate contradictory conclusions about which algorithm
+is better. This motivated decades of research in workload
+modeling~\cite{feitbook}. A recent approach~\cite{feitresampling} proposes to
+resample data directly from the original traces. In this work, we use a simple
+implementation of these ideas.  More precisely, we want to sample the job
+submission process, which is achieved in the following manner: (a) For every
+week in a resampled trace, we iterate over every existing user in the original
+trace; (b) For each of these users, we choose a week of the original trace
+uniformly at random; (c) The jobs from this user in this original week are
+chosen to be present in the week being resampled.  This simple mechanism
+enables us to preserve the dependency within a week.  Although the system state
+may not be independent from one week to an other, we rely on existing
+work~\cite{jsspp17} and assume for these experiments that the system is in a
+stationary state. While we do provide guidelines as how to incorporate tracking
+variant of our algorithms in Section~\ref{sec:online} by introducing a decaying
+discount factor $\lambda$, this will not be studied in the experiments, and is left for future research.
+
+%Thus,
+%computing an average over the sampled traces at a given time can be related to
+%a time average of an underlying Markov process, which converges to the true
+%quantity thanks to the ergodic theorem.  Moreover, the job submission process
+%has no long range correlation making it look like an independent and
+%identically distributed process when considering sufficiently time spaced
+%weeks.
+
+\subsubsection{Experimental campaign}
+
+
+For each of the 7 workloads
+considered, we use the original data to resample 60 traces, each with a length
+of two years. For each resampled trace, we run simulations using the
+EASY($P,\Theta$) scheduling heuristic. We fix the value of the job waiting time
+threshold $\Theta$ at 40 hours. The choice of this default
+stems from the analysis developed in ~\cite{jsspp17}. Essentially, this value is high
+enough for queue reorderings to be leveraged while being low enough to provide
+the functional requirement of preventing starvation. We simulate
+EASY($P,\Theta=40h$) using the following strategies:
+
+\begin{itemize}
+
+  \item All fixed $P_i$ for $1 \leq i \leq 12$ from the search set defined in
+    Subsection ~\ref{subsec:policies}.  This is done for two reasons. First, it allows to
+    see which policy works well for which platform. Second, it allows to
+    compare how well strategies proposed in this work with the best
+    \textit{a-posteriori} known policy;
+
+  \item For all the above strategies based on exact simulation (referred to as
+    "full feedback" in the remainder), on noisy simulation (referred to as
+    "noisy feedback") and on $\epsilon$-greedy exploration (referred to as
+    "bandit feedback"), we experiment with two policy periods: $\Delta \in
+    \left\{ 1 \text{day},1 \text{week} \right\}$. This choice is a consequence
+    of the natural rhythm of human activity: Daily or weekly simulation periods
+    seem to ease comparing of performance between two periods.
+    Indeed, arbitrary period values would needlessly increase the variability
+    of the cost metric. For the bandit feedback strategy, $\epsilon$ is set to $0.5$ and
+    $\lambda$ to $1$. This means that we do not use any decay in the estimation
+    of the overall cost. Choosing to eliminate decay in this experimental
+    campaign is natural since our resampled data is in a stationary regime
+    \textit{by construction}, as explained in~\ref{ssub:resampling}. The choice
+    of $\epsilon=0.5$ is a reasonable default;
+
+  \item Lastly, an additional "Random" strategy is used as a reference point,
+    with, as before, $\Delta \in \left\{ 1 \text{day},1 \text{week} \right\}$.
+    This strategy corresponds to choosing $P_i$ uniformly at random in
+    $\left\{P_1 , \cdots, P_{12} \right\}$ during every period $\Delta_t$.
+
+\end{itemize}
+
+The experimental campaign consists of 7 traces $\times$ 60 resamples $\times$
+(12+2+2+2) algorithms, which correspond to 12600 scheduling simulations spanning
+two years.  This means a total simulated timespan of 25200 years. Moreover,
+both the full-feedback and noisy feedback strategies will also be calling
+simulations as part of their procedure. Indeed, these strategies re-simulate
+the system 12 times at every period $\Delta$, which bumps the total
+effective simulation timespan to 92400 years. This motivates the use of a
+lightweight simulator in the context of this research.
+
+\subsubsection{Replicability}
+
+Readers interested in replicating the experiments (or a part thereof) are
+invited to peruse the 'artifacts description' appendix of this paper. We
+provide to persistent~\cite{zenodo} archives containing the simulator, the analysis code and
+an automated workflow that replicates all experiments and figures present in
+this paper with automatic dependency management.
+
+\subsection{Results}
+\label{sub:results}
+
+\begin{table*}[]
+  \centering
+  \ra{1.3}
+
+  \caption{Average total waiting time diminution of fixed policies with respect
+  to EASY(FCFS). The precise definition of the value reported is provided in
+Eq~\eqref{eq:cum}}
+
+  %DELTA WEEK
+
+  \label{tab:full}
+  \begin{tabular}{@{}lrrrrrrrrrrr@{}}
+    \hline
+    Trace        & LCFS  & LPF            & SPF   & LQF            & SQF   & SEXP  & LEXP           & LRF            & SRF   & LAF          & SAF   \\
+    \hline
+    KTH-SP2      & -13\% & \textbf{-16\%} & +5\%  & \textbf{-16\%} & +3\%  & -8\%  & -15\%          & -8\%           & -13\% & -12\%        & +15\% \\
+    CTC-SP2      & -40\% & -19\%          & -14\% & \textbf{-47\%} & +15\% & -36\% & -19\%          & -38\%          & -12\% & -44\%        & +22\% \\
+    SDSC-SP2     & -8\%  & \textbf{-15\%} & +4\%  & -8\%           & +4\%  & -3\%  & \textbf{-15\%} & -3\%           & -10\% & -11\%        & +18\% \\
+    SDSC-BLUE    & -26\% & -29\%          & 0\%   & -29\%          & +17\% & -17\% & -26\%          & -15\%          & -15\% & \textbf{-32\%} & +23\% \\
+    ANL-Intrepid & -25\% & -9\%           & -3\%  & \textbf{-28\%} & -2\%  & -21\% & -24\%          & -21\%          & -10\% & -19\%        & +5\%  \\
+    CEA-Curie    & -46\% & -23\%          & -45\% & \textbf{-57\%} & -19\% & -51\% & -23\%          & \textbf{-57\%} & -24\% & -40\%        & -17\% \\
+    Unilu-Gaia   & -58\% & -33\%          & -10\% & \textbf{-62\%} & +16\% & -49\% & -27\%          & -56\%          & -16\% & -62\%        & +20\% \\
+    \hline
+  \end{tabular}
+\end{table*}
+
+We begin by drawing the attention of the reader to Table~\ref{tab:full} that
+reports the average total waiting time performance improvement over
+EASY(FCFS,40h) of all the fixed policies defined in ~\ref{subsec:policies}. Let
+us denote the resampled traces of a given workload by $T_k$, where k is the
+index of the resampled trace ($1 \le k \le 60$). Let the number of jobs in the
+resampled trace $T_k$ be $l(T_k)$. Let $\bar{w}(T_k,P)$ be the cumulative
+waiting time obtained by a simulation run for a strategy $P$:
+
+\begin{equation}
+  \bar{w}(T_k,P) = \sum_{j=1}^{l(T_k)} \text{Wait}_j^{P}
+\end{equation}
+
+So that the values appearing in Table~\ref{tab:full} are exactly:
+
+\begin{equation} \label{eq:cum}
+  \frac{\sum_{k=1}^{k=60}\bar{w}(T_k,\text{EASY}(P_i,40h))-
+  \bar{w}(T_k,\text{EASY}(\text{FCFS},40h))}{\sum_{k=1}^{k=60}\bar{w}(T_k,\text{EASY}(\text{FCFS},40h))}
+\end{equation}
+
+The best values are outlined in bold in the table. These values give the best
+attainable performance in the search set defined in~\ref{subsec:policies}.
+Note that there seems to be some regularity; for instance the SAF policy is remarkably
+inefficient and the LQF policy works very well. However there are traces for which LQF is not optimal. Moreover, these
+are~\textit{a-posteriori} results, which means that we only know
+\textit{post-factum} that this policy would have been better.
+
+
+\begin{figure}[]
+  \centering
+  \includegraphics[scale=0.6]{figures/full-UniLu-Ga.pdf}
+  \caption{Evolution of the average cumulative waiting time improvement
+    compared to EASY-FCFS of the policies $P_i$ for $i = 1 \ldots 12$ on the
+    UniLu-Gaia trace. The average is obtained by resampling the original trace
+    60 times. The dashed lines represent the 10th and 90th percentiles of the
+  values across this resampling.}
+  \label{fig:all}
+\end{figure}
+
+In the present work, we are studying adaptive policies that obtain a good
+performance on any given system by selecting one of these policies.
+Figure~\ref{fig:all} reports the evolution of the average cumulative waiting
+time for the UniLu-Gaia trace. This figure shows how the average improvement
+in cumulative waiting time evolves as a function of time.  In other words, this
+is the average curve obtained if one were to plot the cumulative sum of job
+waiting times for every resampled trace, incrementing the sum when a job
+finishes. Accordingly, the final values attained by every curve correspond
+exactly to the values reported in Table~\ref{tab:full}. The dashed values
+represent the 10th and 90th percentile of the values.
+
+Observe that while the 10th and 90th percentiles of the improvement with
+respect to EASY-FCFS are large, the values are still contained enough to make
+definite statements about how these policies compare to the FCFS baseline.
+This figure does not report the variability of the policies against one another,
+and does not allow to compare them beyond their average performance.
+Tthe fact that the size of the percentile band is roughly half
+the best attainable improvement was our original motivation for this work, as
+one can expect to be able to distinguish between these policies in an
+online manner.
+
+\begin{figure*}[]
+  \centering
+  \includegraphics[scale=0.6]{figures/CTC-SP2.pdf}
+  \includegraphics[scale=0.6]{figures/KTH-SP2.pdf}\\
+  \includegraphics[scale=0.6]{figures/CEA-Curi.pdf}
+  \includegraphics[scale=0.6]{figures/SDSC-BLU.pdf}\\
+  \includegraphics[scale=0.6]{figures/SDSC-SP2.pdf}
+  \includegraphics[scale=0.6]{figures/ANL-Intr.pdf}
+
+  \caption{Evolution of the average cumulative waiting time improvement
+    compared to EASY-FCFS of the FullFeedback, NoisyFeedback and EpsilonGreedy
+    policies. The average is obtained by resampling the original trace 60
+    times. The dashed lines represent the 10th and 90th percentiles of the
+  values across this resampling. Each figure is a different trace. This figure
+is followed-up in figure~\ref{fig:follow} for the remaining UniLu-Gaia trace.}
+
+  \label{fig:small}
+\end{figure*}
+
+\begin{figure}[]
+  \centering
+  \includegraphics[scale=0.6]{figures/UniLu-Ga.pdf}
+
+  \caption{Follow-up from figure~\ref{fig:small}, plot for the UniLu-Gaia log.}
+
+  \label{fig:follow}
+\end{figure}
+
+Figures~\ref{fig:small} and~\ref{fig:follow} report the main experimental
+results concerning the strategies proposed in this paper. These figures show the
+average cumulative improvement of over EASY(FCFS,40h) of the three strategies
+we propose in the same format as Figure~\ref{fig:all}. There are five
+strategies displayed on the graph:
+
+\begin{itemize}
+  \item Random $P \in P_i, 1 \le k \le 60$. ($\Delta=$1 week)
+  \item Epsilon-Greedy (Bandit Feedback) ($\Delta=$1 week)
+  \item Epsilon-Greedy (Bandit Feedback) ($\Delta=$1 day)
+  \item Full (simulated) Feedback ($\Delta=$1 week)
+  \item Noisy (simulated) Feedback ($\Delta=$1 week)
+\end{itemize}
+
+\begin{table*}[]
+  \centering
+  \ra{1.3}
+  \caption{Average Cumulative waiting time improvement of the proposed policies with respect to EASY(FCFS).}
+  \label{tab:strat}
+  \begin{tabular}{@{}lrrrrrrrrrrr@{}}
+    \hline
+    Trace        & Random &       & Full           &                & Noisy &       & Bandit & \\
+    \hline
+    $\Delta$     & week   & day   & week           & day            & week  & day   & week   & day \\
+    KTH-SP2      & -6\%   & -8\%  & \textbf{-12}\% & -\textbf{11}\% & -12\% & -12\% & -7\%   & -10\% \\
+    CTC-SP2      & -20\%  & -23\% & \textbf{-44}\% & \textbf{-44}\% & -44\% & -44\% & -26\%  & -31\% \\
+    SDSC-SP2     & -4\%   & -7\%  & \textbf{-13}\% & \textbf{-13}\% & -13\% & -13\% & -5\%   & -8\% \\
+    SDSC-BLUE    & -12\%  & -14\% & \textbf{-31}\% & \textbf{-31}\% & -30\% & -29\% & -12\%  & -17\% \\
+    ANL-Intrepid & -13\%  & -20\% & -22\%          & \textbf{-26}\% & -19\% & -24\% & -13\%  & -20\% \\
+    CEA-Curie    & -35\%  & -42\% & \textbf{-53}\% & -47\%          & -53\% & -48\% & -36\%  & -46\% \\
+    Unilu-Gaia   & -29\%  & -31\% & -59\%          & \textbf{-60}\% & -58\% & -58\% & -33\%  & -34\% \\
+    \hline
+  \end{tabular}
+\end{table*}
+
+Table~\ref{tab:strat} reports the average total waiting time performance
+improvement over EASY(FCFS,40h) of all the proposed strategies along with the
+random variant.  We make the following observations.
+
+\textbf{FCFS vs Random.} Randomly taking a policy in the search set defined in
+~\ref{subsec:policies} is better than using the FCFS order. This is due to the
+known fact that the FCFS order is not optimal for optimizing the average
+waiting time objective, and confirms that the search set is well chosen.  The
+value of the period length $\Delta$ has an impact on the performance of the
+random policy. Indeed, shorter periods lead to better performance. We
+ that this is due to the properties of the system under study.
+When a bad policy is used, the job queue builds up. By switching more
+frequently from bad to good policies, the system never has time to build up the
+job queue. In other words, while bad decisions impact the system through an
+accumulation of waiting jobs, there is less contribution to system inertia from
+good decisions, as the number of jobs in queue can not be negative. This
+interpretation also means that randomized bandit strategies are robust by
+design, and needs more subsequent experimenting to be validated.
+
+\textbf{The Simulated Feedback strategy consistently performs almost as well as the
+best fixed policy.} The values attained by the exact simulation based strategy almost match
+the highlighted values from Table~\ref{tab:full}. This corresponds to the curve
+labeled "Full" in Figures~\ref{fig:small} and~\ref{fig:follow}. Moreover,
+these average cumulative waiting time curves exhibit linearity (as opposed to
+being concave), which further shows that the choice of the best policy can be
+made rapidly.  Note that the value of $\Delta$ has no impact over the
+performance of this strategy.
+
+\textbf{Noisy simulations can be used.} The performance attained by the noisy
+variant almost matches that of the exact-simulation based strategy. This indicates
+that it is not necessary to have access to a precise simulator. Rather, we may
+hope that an imprecise but unbiased reporting of the performance is enough to
+rapidly select a reordering policy .
+
+\textbf{Full vs Bandit feedback.} As expected, the bandit strategy evolves
+between the random strategy and the full feedback strategy. The bandit-based
+strategy always fares better with a shorter period $\Delta$, recovering between
+a quarter to the whole gap between the Random and Full Feedback strategies.
+
+\begin{figure}[]
+  \centering
+  \includegraphics[scale=0.6]{figures/mosaic-UniLu-Ga.pdf}
+
+  \caption{Share of the policies chosen by the Noisy policy ($\Delta=$1 day,
+  $\lambda = 1 $) as a function of time
+    for the UniLu-Gaia trace. The average choice
+  is obtained by resampling the original trace 60 times and aggregating by
+  date.}
+
+  \label{fig:mosn}
+\end{figure}
+
+\textbf{Stability of the policy selection.}
+Figure~\ref{fig:mosn} gives insight regarding the behavior of the noisy
+feedback policy with $\Delta=$ 1 week. This figure reports the
+share of the policies chosen by the strategy on average as a function of time.
+This is an area plot: The height of the colored region
+represents the value. Moreover, the proportion of times each policy is
+chosen by the strategy is aggregated across resampled traces.
+
+While this policy obtains an excellent performance, the convergence to a fixed
+policy is slow. This is not harmful \textit{per se} and just means that it is
+difficult to distinguish between the best policies. Additionally, we observe that
+the two increasingly dominant policies, LAF and LQF, are the best overall policies.
+This means that the estimation converges to the correct point.
+
+\begin{figure}[]
+  \centering
+  \includegraphics[scale=0.6]{figures/mosaicbandit-UniLu-Ga.pdf}
+
+  \caption{Share of the policies chosen by Epsilon-Greedy($\Delta=$1 day,
+  $\epsilon = 0.5, \lambda = 1 $) as a function of time for the UniLu-Gaia
+trace. The average choice is obtained by resampling the original trace 60 times
+and aggregating by date.}
+
+  \label{fig:mosb}
+\end{figure}
+
+Figure~\ref{fig:mosb} is the analogue of Figure~\ref{fig:mosn}, this time for
+the Epsilon-Greedy policy with $\Delta$ = 1 week.  Observe that here the choice of policy is much less stable. The convergence is
+extremely slow, which is expected given the variability of the reward we give
+to the bandit algorithm.
+
+\section{Conclusion}
+\label{sec:ccl}
+
+The scheduling of parallel jobs on a given HPC platform is a very hard
+optimization problem with many uncertain parameters. Even though these
+uncertainties could be reduced, determining efficient strategies remains
+difficult.
+
+In this work, we presented a new way of addressing this problem. The idea was
+to look at the level of the scheduling process instead of trying to change its
+parameters.
+
+More precisely, we showed that it is worth learning on the scheduling process
+itself. Indeed, reordering the submission queues under EASY-Backfilling leads
+to considerable gains in performance.
+
+This approach was used in two methods: a method based on a simulator and a
+method based on a multi-armed bandit algorithm. The first one provides very
+good results, reducing the average waiting times of the baseline FCFS ordering
+policy by 11\% to 60\%. The second one is slightly less efficient with an
+improvement factor of 8\% to 46\%. However, the bandit-based method is easier
+to use and cheaper to run.
+
+There are two directions to extend this work.  First, the question of
+the existence of a more efficient selection strategy for bandit feedback for
+these systems is not addressed by this work. Is a simulator really necessary?
+%@Denis: a essayer.. 1 mois de travail pour tester?
+Second, one can't help but wonder what performance could be achieved by extending
+the search space to arbitrary policies. This means studying learning performance using some
+function approximator.
+%@Denis: c'est ce que font vasily et salah de deux manieres differentes.
+%TODO SPLIT IN TWO, MENTION FACTOR ANALYSIS.
+As both these directions are data-bound, they will require careful application of
+trace resampling techniques to be successful.
+
+\begin{acks}
+
+Authors are sorted in alphabetical order. The authors would like to warmly
+thank Pierre Neyron for help with computational experiments, as well as Michael
+Mercier, Salah Zrigui, Bruno Raffin and Theophile Terraz for their comments and
+Arnaud Legrand for his work on reproducibility. We gracefully thank the
+contributors of the Parallel Workloads Archive, Victor Hazlewood (SDSC SP2),
+Travis Earheart and Nancy Wilkins-Diehr (SDSC Blue), Lars Malinowsky (KTH SP2),
+Dan Dwyer and Steve Hotovy (CTC SP2), Joseph Emeras (CEA Curie and UniLu Gaia),
+Susan Coghlan, Narayan Desay, Wei Tang (ANL Intrepid), and of course Dror
+Feitelson.  The Metacentrum workload log was graciously provided by the Czech
+National Grid Infrastructure MetaCentrum. This work has been partially
+supported by the LabEx
+PERSYVAL-Lab(\grantsponsor{ANR-11-LABX-0025-01}{ANR-11-LABX-0025-01}) funded by
+the French program Investissement d'avenir.
+
+\end{acks}
+
+\bibliographystyle{acmst}
+\bibliography{bibliography}
+
+\clearpage
+
+\section{artifact description: [online (bandit) policy selection for easy-backfilling]}
+
+\subsection{Abstract}
+
+This appendix describes the computational artifacts associated with this work.
+We take a lightweight approach to replicability by packaging and publishing a
+declarative workflow that generates all the figures from this paper. Moreover,
+questions regarding replication can be freely directed to the authors via
+e-mail.
+
+All the code associated with this work is released under the ~\cite{isc}
+license as a persistent zenodo~\cite{zenodo} archive~\cite{repro}.
+
+\subsection{Description}
+
+There are various approaches for making computational experiments replicable,
+among which distributing complete operating system images, containers, or
+packaging software. As our experiments are CPU bound, we decide to opt for the
+software packaging approach. This allows for replicating the experiments on
+clusters where virtualization is not available or kernels are too old for
+containers and decreases simulation runtime.
+
+All the dependencies of our
+experiments (including our own code, dependencies for data processing and
+visualization and workflow engine) are automatically managed by Nix up to the
+actual execution of the code.
+
+\subsubsection{Check-list (artifact meta information)}
+
+{\small
+\begin{itemize}
+  \item {\bf Algorithm: Scheduling Simulation Workflow}
+  \item {\bf Program: Ocaml, R, Bash, Zymake(all sources and dependencies included)}
+  \item {\bf Compilation: Ocaml 4.02.3, GNU bash version 4.4.5(1)-release, R version 3.3.2}
+  \item {\bf Transformations: Patched nix standard environment.}
+  \item {\bf Binary: Most binaries are cached by Nix channels.}
+  \item {\bf Data set: Traces from the parallel workload archive, included.}
+  \item {\bf Run-time environment: Nixpkgs 17.03}
+  \item {\bf Hardware: Dell PowerEdge R730}
+  \item {\bf Output: Files}
+  \item {\bf Experiment workflow: \lstinline[basicstyle=\ttfamily\color{blue}]|zymakefile|, see below}
+  \item {\bf Publicly available?: Open-Sourced under the ISC~\cite{isc} license.}
+\end{itemize}
+}
+
+\subsubsection{Obtaining the code.}
+
+The archive containing the experimental workflow can be obtained at
+(URL omitted due to double-blind review). Running the experiments can be done
+on any platform equipped with the nix package manager by running at the root of
+the extracted archive:
+
+\begin{lstlisting}
+nix-build -A banditSelection
+\end{lstlisting}
+
+\subsubsection{Hardware}
+
+ Experiments presented in this paper were carried out using the Grid'5000
+ testbed. Grid'5000 is supported by a scientific interest group hosted by Inria
+ and including CNRS, RENATER and several Universities as well as other
+ organizations\footnote{https://www.grid5000.fr}.  Access to the experimental
+ machine(s) used in this paper was gracefully granted by research teams from
+ LIG\footnote{http://www.liglab.fr} and Inria\footnote{http://www.inria.fr}.
+
+ The experiments in this paper can run in less than 24 hours on a
+ moderately parallel host. More precisely, we had access to a Dell PowerEdge
+ R730 equipped with a total of 56 threads @2.4GHz each and 757 Gigabites of RAM. For
+ this reason, the experimental campaign workflow was designed to be executed on
+ a single host.
+
+\subsubsection{Software dependencies}
+
+All the software dependencies of our experiments are automatically managed by Nix.
+The Nix package manager is available at \url{https://nixos.org/nix}.
+
+\subsubsection{Datasets}
+
+All data from this paper were obtained from the Swf Parallel Workloads
+Archive~\cite{Feitelson20142967}. The data is cached in gzipped format in the
+persistent archive associated with this workflow, should the Parallel
+Workloads Archive become unavailable.
+
+\subsection{Installation}
+
+The experiment's dependencies are loaded into the environment by the
+\lstinline[basicstyle=\ttfamily]|nix-build| command.
+
+Nevertheless, the reader interested in using the tools outside the workflow can
+obtain an environment by running a \lstinline[basicstyle=\ttfamily]|nix-shell| command
+at the root of the extracted archive:
+
+\begin{lstlisting}
+nix-shell -A banditSelection
+\end{lstlisting}
+
+This allows to use the following command-line tools:
+
+\begin{itemize}
+
+  \item[ocs] The scheduling simulator used in the experiments. Use
+    \lstinline[basicstyle=\ttfamily]|ocs --help| to see all available options.
+
+  \item[ocs-sampler] The workload resampler used in the experiments. Use
+    \lstinline[basicstyle=\ttfamily]|ocs-sampler --help| for usage.
+
+  \item[zymake] The zymake~\cite{zymake} tool.
+    The workflow can be executed in the current environment in parallel
+    via \\ \lstinline[basicstyle=\ttfamily]|zymake -l localhost zymakefile|.
+
+\end{itemize}
+
+\subsection{Experiment workflow}
+
+ All experiments are tied together using zymake~\cite{zymake}, a minimalistic
+ workflow system designed for computational experiments\footnote{The zymake system
+ is also packaged by our nix expressions.}. This system is
+ analogous to a traditional build system with added workflow capabilities. The
+ entire workflow that generates this article from the input data is contained
+ in a single \lstinline[basicstyle=\ttfamily\color{blue}]|zymakefile| to be
+ found at the root of the main archive. This workflow is composed of the
+ following steps:
+
+ \begin{itemize}
+   \item[data]: Data extraction from archives, filtering, resampling.
+     this is principally using shell scripts for data manipulation (see file
+     \lstinline[basicstyle=\ttfamily\color{blue}]|misc/strong_filter| for the
+     filtering steps used) and ocaml code that implements the resampling method
+     described in~\ref{ssub:resampling}.
+
+   \item[simulation]: This step runs the lightweight ocaml backfilling
+     simulator specially written for this work. this simulator is made
+     available under the isc~\cite{isc} license as a persistent zenodo
+     archive at~\cite{ocst}.
+
+   \item[analysis]: This step runs r code that generates the figures
+     presented in this paper.
+ \end{itemize}
+
+\subsection{Evaluation and expected result}
+
+All resulting figures will be situated in the simlinked folder named
+\lstinline[basicstyle=\ttfamily\color{blue}]|result| positionned at the root of
+the archive.
+
+\subsection{Experiment customization}
+
+Readers interested in modifying the experiments can obtain the zenodo archive
+at (URL omitted due to peer review).
+
+The file tree has the following structure:
+
+\dirtree{%
+  .1 root .
+.2 zymakefile \textcolor{brown}{Zymake workflow} .
+.2 default.nix \textcolor{brown}{Nix packaging} .
+.2 pkgs/ \textcolor{brown}{Nix packaging} .
+.2 gz/ \textcolor{brown}{Data archive} .
+.3 ANL-Intrepid.swf.gz .
+.3 $\cdots$ .
+.2 misc/ \textcolor{brown}{Visualization and filtering code} .
+.2 ocst/ \textcolor{brown}{Simulator Code} .
+.2 paper/ \textcolor{brown}{This article.} .
+}
+
+Most simple workflow modifications (using different traces, changing the sample
+sizes) can be obtained by modifying the
+\lstinline[basicstyle=\ttfamily\color{blue}]|zymakefile|.
+
+The experiments can then be run as before via:
+
+\begin{lstlisting}
+nix-build -A banditSelection
+\end{lstlisting}
+
+Additionally, the experiments can be launched manually via:
+
+\begin{lstlisting}
+nix-shell -A banditSelection
+zymake -l localhost zymakefile
+\end{lstlisting}
+
+\subsection{Notes}
+
+This artefact description was prepared according to the guidelines located at
+\url{http://ctuning.org/ae/submission.html}
+
+\end{document}
