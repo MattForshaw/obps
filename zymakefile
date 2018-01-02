@@ -167,7 +167,7 @@ $(< type="simulated" strategy="fixed" prim="wait").cumtable
 $(< type="simulated" strategy="bandit-random" ).cumtable
 $(< type="simulated" strategy="bandit-clairvoyant" rewardtype="raw").cumtable
 $(< type="simulated" strategy="bandit-noisy" rewardtype="raw").cumtable
-$(< type="simulated" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" hyper="0.5").cumtable
+$(< type="simulated" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" ).cumtable
 -o $(> type="cumobj_bandit").pdf
 
 misc/visu/cumobj_diff.R
@@ -180,8 +180,8 @@ $(< type="simulated" strategy="fixed" prim="wait").swf
 $(< type="simulated" strategy="bandit-random" period=period_week).swf
 $(< type="simulated" strategy="bandit-clairvoyant" rewardtype="raw" period=period_week).swf
 $(< type="simulated" strategy="bandit-noisy" rewardtype="raw" period=period_week).swf
-$(< type="simulated" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" hyper="0.5" period=period_day).swf
-$(< type="simulated" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" hyper="0.5" period=period_week).swf
+$(< type="simulated" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy"  period=period_day).swf
+$(< type="simulated" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" period=period_week).swf
 -t "Random" -t "Full" -t "Noisy" -t "Bandit-D" -t "Bandit-W"
 -o $(>).cumDiffB
 
@@ -225,6 +225,10 @@ $(trace=*traces type="cumobj_bandit_diff" pfam=policyfam_full period=period_day 
 $(trace=*traces type="mosaic" strategy="bandit-clairvoyant" pfam=policyfam_full period=period_day hyper=0).pdf
 $(trace=*traces type="mosaic" strategy="bandit-noisy" pfam=policyfam_full period=period_day  hyper=0).pdf
 $(trace=*traces type="mosaic" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" pfam=policyfam_full period=period_day hyper="0.5").pdf
+$(trace=*traces type="mosaic" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" pfam=policyfam_full period=period_day hyper="0.3").pdf
+$(trace=*traces type="mosaic" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" pfam=policyfam_full period=period_day hyper="0.1").pdf
+$(trace=*traces type="mosaic" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" pfam=policyfam_full period=period_day hyper="0.7").pdf
+$(trace=*traces type="mosaic" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" pfam=policyfam_full period=period_day hyper="0.9").pdf
 '
 
 #$(trace="l_kth_sp" tracename="KTH-SP2"    type="cumobj_bandit_diffb" pfam=policyfam_full period=86400 hyper=0 ).pdf
