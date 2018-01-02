@@ -1,4 +1,4 @@
-{ stdenv, fetchzip, ocaml, findlib, ocamlbuild, opam, ocaml_batteries, topkg,  cmdliner }:
+{ stdenv, fetchzip, ocaml, findlib, ocamlbuild, opam, ocaml_batteries, topkg,  cmdliner , obandit}:
 
 stdenv.mkDerivation rec {
 	name = "ocs-${version}";
@@ -15,7 +15,7 @@ stdenv.mkDerivation rec {
 
 	buildInputs = [ ocaml_batteries ocaml findlib ocamlbuild topkg opam ];
 
-  propagatedBuildInputs = [ ocaml_batteries cmdliner ];
+  propagatedBuildInputs = [ ocaml_batteries cmdliner obandit ];
 
   inherit (topkg) buildPhase installPhase;
 

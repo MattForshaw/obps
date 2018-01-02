@@ -3,7 +3,8 @@ let
   callPackage = pkgs.lib.callPackageWith (pkgs // pkgs.xlibs // self);
   self = rec {
     zymake = pkgs.ocamlPackages.callPackage pkgs/zymake { };
-    ocs = pkgs.ocamlPackages.callPackage pkgs/ocs { };
+    obandit = pkgs.ocamlPackages.callPackage obandit/obandit.nix {};
+    ocs = pkgs.ocamlPackages.callPackage pkgs/ocs { inherit obandit; };
     banditSelection=pkgs.stdenv.mkDerivation rec {
       name = "banditSelection";
       src = ./.;
@@ -22,7 +23,15 @@ let
         pkgs.bc
       ];
       #configurePhase = ''rm -rf o'';
-      buildPhase = "zymake -l localhost zymakefile";
+      buildPhase = ''
+        patchShebangs ./misc/strong_filter
+        #patchShebangs ./src/global_metrics.R
+        patchShebangs ./misc/visu/cumobj_diff.R
+        patchShebangs ./misc/visu/average_cumobj.R
+        patchShebangs ./misc/visu/mosaic.R
+        patchShebangs ./misc/extract_maxprocs.py
+        zymake -l localhost zymakefile
+        '';
       installPhase = ''
         mkdir -p $out/pdfs/
         mv o/zymakefile/*.pdf $out/pdfs
