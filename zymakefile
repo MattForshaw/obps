@@ -220,9 +220,21 @@ $(metaid=*metaids ).selectf
 
 : pwd; echo
 '
-$(trace=*traces type="cumobj_bandit_diffb" pfam=policyfam_full hyper=0 ).pdf
-$(trace=*traces type="cumobj_bandit_diff" pfam=policyfam_full period=period_day hyper=0 ).pdf
-$(trace=*traces type="mosaic" strategy="bandit-clairvoyant" pfam=policyfam_full period=period_day hyper=0).pdf
+$(trace=*traces type="cumobj_bandit_diffb" pfam=policyfam_full hyper=0.5 ).pdf
+$(trace=*traces type="cumobj_bandit_diff" pfam=policyfam_full period=period_day hyper=0.5 ).pdf
+$(trace=*traces type="mosaic" strategy="bandit-clairvoyant" pfam=policyfam_full period=period_day hyper=0.5).pdf
+$(trace=*traces type="cumobj_bandit_diffb" pfam=policyfam_full hyper=0.1 ).pdf
+$(trace=*traces type="cumobj_bandit_diff" pfam=policyfam_full period=period_day hyper=0.1 ).pdf
+$(trace=*traces type="mosaic" strategy="bandit-clairvoyant" pfam=policyfam_full period=period_day hyper=0.1).pdf
+$(trace=*traces type="cumobj_bandit_diffb" pfam=policyfam_full hyper=0.3 ).pdf
+$(trace=*traces type="cumobj_bandit_diff" pfam=policyfam_full period=period_day hyper=0.3 ).pdf
+$(trace=*traces type="mosaic" strategy="bandit-clairvoyant" pfam=policyfam_full period=period_day hyper=0.3).pdf
+$(trace=*traces type="cumobj_bandit_diffb" pfam=policyfam_full hyper=0.7 ).pdf
+$(trace=*traces type="cumobj_bandit_diff" pfam=policyfam_full period=period_day hyper=0.7 ).pdf
+$(trace=*traces type="mosaic" strategy="bandit-clairvoyant" pfam=policyfam_full period=period_day hyper=0.7).pdf
+$(trace=*traces type="cumobj_bandit_diffb" pfam=policyfam_full hyper=0.9 ).pdf
+$(trace=*traces type="cumobj_bandit_diff" pfam=policyfam_full period=period_day hyper=0.9 ).pdf
+$(trace=*traces type="mosaic" strategy="bandit-clairvoyant" pfam=policyfam_full period=period_day hyper=0.9).pdf
 $(trace=*traces type="mosaic" strategy="bandit-noisy" pfam=policyfam_full period=period_day  hyper=0).pdf
 $(trace=*traces type="mosaic" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" pfam=policyfam_full period=period_day hyper="0.5").pdf
 $(trace=*traces type="mosaic" strategy="bandit-onpolicy" rewardtype="raw" banditType="expgreedy" pfam=policyfam_full period=period_day hyper="0.3").pdf
