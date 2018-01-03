@@ -17,11 +17,11 @@ period_week = 604800
 
 threshold = 200000
 
-metaids = $(range 1 20)
+metaids = $(range 1 60)
 
 strids = $(range 1 5)
 
-sfsids = $(range 1 10)
+sfsids = $(range 1 20)
 
 back = sqf
 
