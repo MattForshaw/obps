@@ -1,0 +1,170 @@
+There are several publications discussing the disadvantages in using traces and suggesting workload models instead. The authors do not consider these studies in their manuscript without explaining why.
+*we leave this discussion to Workload Resampling for Performance Evaluation of Parallel Job Schedulers.
+
+Problems of the introduction explaining the goal of the study are likely related to the already mentioned design problems of the study. The same holds for the organization of the manuscript.
+*ok, todo denis&eric*
+
+The authors can improve readability of the manuscript by explaining the underlying algorithmic approach in some more detail.
+*notdone*
+
+Since the journal provides a platform for supplemental material, the reviewer does not understand why readers must contact the authors by email to obtain data to reproduce the study.  
+*my bad - fixed*
+
+Additional Questions:
+1. Which category describes this manuscript?: Practice / Application / Case Study / Experience Report
+
+2. How relevant is this manuscript to the readers of this periodical? Please explain your rating under Public Comments below.: Irrelevant
+
+1.  Please explain how this manuscript advances this field of research and/or contributes something new to the literature.: The manuscript describes an experimental study based ona trial-and-error approach. It may be relevant to researchers finding a hypothesis that they can verify with carefully designed computational experiments
+
+2. Is the manuscript technically sound? Please explain your answer under Public Comments below.: Partially
+
+1. Are the title, abstract, and keywords appropriate? Please explain under Public Comments below.: No
+
+2. Does the manuscript contain sufficient and appropriate references? Please explain under Public Comments below.: Important references are missing; more references are needed
+
+3. Does the introduction state the objectives of the manuscript in terms that encourage the reader to read on? Please explain your answer under Public Comments below.: Could be improved
+
+4. How would you rate the organization of the manuscript? Is it focused? Is the length appropriate for the topic? Please explain under Public Comments below.: Poor
+
+5. Please rate the readability of the manuscript. Explain your rating under Public Comments below.: Readable - but requires some effort to understand
+
+6. Should the supplemental material be included? (Click on the Supplementary Files icon to view files): Does not apply, no supplementary files included
+
+7. If yes to 6, should it be accepted: 
+
+Please rate the manuscript. Please explain your choice.: Poor
+
+
+Reviewer: 2
+
+Recommendation: Author Should Prepare A Minor Revision
+
+Comments:
+I basically liked this paper and support its publication.  The following comments make some suggestions for possible improvements.
+
+Title: I would suggest to remove the "(bandit)" from the title, and instead use something like "Online Queue-Ordering Policy Selection for EASY-Backfilling" -- emphasize what you are doing, not how.
+
+Related work: additional papers you may want to look at are
+1) "Exploring portfolio scheduling for long-term execution of scientific workloads in IaaS clouds", from SC'13, suggests how to select from a large portfolio of possible schedulers;
+2) "Improving and stabilizing parallel computer performance using adaptive backfilling", from IPDPS 2005, which also suggests online selection from a set of 4 alternative schedulers;
+3) "Selective reservation Strategies for Backfill Job Scheduling", from JSSPP 2002, which suggests online decisions of whether to make reservations for skipped jobs - similar effect to your thresholding scheme;
+4) "Self-tuning systems", from IEEE Software 1999, which is about simulating performance with local workloads to select systems parameter values.
+*todo in morning*
+
+Section 2.2 - could be good to give a short description of how a basic version of such an algorithm works, instead of just noting a list of versions.
+*done*
+
+Section 3.1 notation - intuitively p could represent processors just as well as processing time, so I would suggest t_i for time and p_i for processors.
+*this is notation from scheduling theory*
+
+Similarly, in Section 4.1 I for one would find the names more intuitive with
+SJF/LJF instead of SPF/LPF (shortest/longes job first)
+SPF/LPF instead of SQF/LQF (smallest/largest processors first)
+*notation from tsafrir et al*
+expansion factor is often called slowdown
+*notation from Characterization of backfilling strategies for parallel job scheduling*
+
+area is often called total resources
+*Makes sense but acronym larger :)*
+
+Section 5.1 exact simulation: I understand why you divide the time into periods as part of online tuning. But I disagree with doing so also in the simulations - as you yourselves say, it just causes problems with boundary effects.  And you can discount more distant jobs without using periods.
+*We agree that this design choice can be discussed. Our decision to divide makes the study
+more realistic with respect to the cases where simulations are expensive(which is most large systems)*
+
+Section 5.2 - adding noise to the output rather than to the input workload doesn't make sense in my opinion. And the result that it gave the same results is totally expected - you add random noise with mean 0 and then fined that the average didn't change.
+*We do agree that this does not change the estimate - the point of adding this noise was to show that the 
+sample size is not prohibitive in practice - indeed, we learn the policy almost as fast with this noise, which
+motivates the use of the technique in real-world cases.*
+
+Section 6.1.1 traces - I think negative values are just -1 meaning no data is available.
+*We made this clearer in the text*
+
+Section 6.3.1 - I think you can say more about the post-factum results.  Even if it is not your focus, it is still interesting that for example ordering by size is more beneficial than by time, and that it should be largest-first (and the SJF-like scheme is not good).
+*Doing this would really drown the point in our opinion, because it means discussing the results for all the traces.
+We refer to our previous publication 'Tuning Backfilling Queues'(JSSPP17), which is now in the related works of the
+article.*
+
+Section 6.3.2 FCFS vs. Random: you justify the result be a conjecture that jobs do not pile up in the queue.  you should verify this by counting the jobs int he queue in the simulation.
+*We aggree that this conjecture is not warranted - Thank you, we removed it in the revision. we do have plans to explore
+this for a future publication.*
+
+Table 3: add columns with best static result for comparison.
+*we made this modification*
+
+Description of Figure 6 results: this is not slow convergence, it is no convergence.  and using epsilon=0.5 is much too high: it means that half of the time you are choosing randomly, and that's why all of the possible approaches are used approximately the same fraction of the time. What you want is to initially use them all, but then reduce epsilon with time till you reach some reasonable value like random exploration in 1 of 10 or 1 of 20 periods.
+*We changed the experimental protocol to use leave-one-out cross validation*
+
+Reference [4] is often referred to and gives important background, but is not available. NOTE: this journal does not really do blind review. Your names are given on the first page.
+*corrected*
+
+Typos and usage:
+
+References:
+capitalization in [24], [28], [36]
+[34] - this has a published version
+*todo*
+
+Additional Questions:
+1. Which category describes this manuscript?: Research/Technology
+
+2. How relevant is this manuscript to the readers of this periodical? Please explain your rating under Public Comments below.: Relevant
+
+1.  Please explain how this manuscript advances this field of research and/or contributes something new to the literature.: Scheduling of parallel jobs on large-scale parallel systems has been dominated by FCFS-backfilling for two decades. This paper does a good job of showing how this scheme can be optimized on-line to adjust it for local conditions on different systems, with very promising results.
+
+2. Is the manuscript technically sound? Please explain your answer under Public Comments below.: Yes
+
+1. Are the title, abstract, and keywords appropriate? Please explain under Public Comments below.: Yes
+
+2. Does the manuscript contain sufficient and appropriate references? Please explain under Public Comments below.: References are sufficient and appropriate
+
+3. Does the introduction state the objectives of the manuscript in terms that encourage the reader to read on? Please explain your answer under Public Comments below.: Yes
+
+4. How would you rate the organization of the manuscript? Is it focused? Is the length appropriate for the topic? Please explain under Public Comments below.: Satisfactory
+
+5. Please rate the readability of the manuscript. Explain your rating under Public Comments below.: Easy to read
+
+6. Should the supplemental material be included? (Click on the Supplementary Files icon to view files): Does not apply, no supplementary files included
+
+7. If yes to 6, should it be accepted: 
+
+Please rate the manuscript. Please explain your choice.: Good
+
+
+Reviewer: 3
+
+Recommendation: Author Should Prepare A Major Revision For A Second Review
+
+Comments:
+I think that the current experiments are not sufficient to show the advantage of the proposed strategy. 
+
+The authors compare the performance of the proposed strategy with the baseline performance derived by EASY Backfilling. The performance of EASY Backfilling is good metric as the baseline, but comparison with EASY Backfilling is not enough to discuss the advantage of the proposed strategy. A lot of work about tuned Backfilling has been presented as discussed in Sec. 2. The author should discuss the performance improvement compared with the existing tuned backfilling strategies.
+
+The experimental results in Table 2 show that LAF and LQF show best performance among 12 reordering policies. This indicates that we can expect significant performance improvement by using static strategies, Backfilling with LAF or that with LQF, compared with EASY Backfilling. If the performance gap between the proposed strategy and the static strategies are small, the static strategies may be preferable because they are less complicated and run with smaller scheduling overhead. A comparison between the proposed strategy and the static strategies is needed to show the advantage of the proposed strategy.
+
+*We do agree with the reviewer that in order to show that bandit/resimulation
+aproaches are really worthwhile, one should compare their performance with a
+static choice, say using leave-one-out cross validation.  This work does not
+aim to underline the necessity of the bandit approach (and the title has been
+appropriately changed, as suggested by another reviewer). Rather, we try to
+show its advantages, feasibility and limitations. There are reasons for not
+trying to be too demonstrative of the superiority of the adaptive approach
+using our hypotheses - for instance, we use a simplistic simulation model.  In
+this model, we do make machines *more* similar to each other by neglecting
+topological differences. It can be reasonably expected that differences between
+systems should *increase* rather than decrease, when moving away from a
+simplistic model to the real systems! *
+
+The authors assume +/-20% noise in the simulation running in the proposed strategy. However, the reason why this assumption is suitable is not presented. The authors should discuss the noise of 20% is suitable to represent real world jobs.
+*This noise is applied to the final metric as measured after the simulation.
+We do agree that this number is not justified * 
+*todo?*
+
+Minor comments for improving presentation:
+
+Fig.2
+Please show the scale indicating 0% in Y axis, so that the readers may easily understand performance improvement from the figure.
+*todo*
+
+Typo:
+
