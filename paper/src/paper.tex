@@ -404,10 +404,12 @@ reorder it at will. We focus on a search space of 10 reordering policies.
     factor is defined as follows:
   \begin{equation} \frac{wait_j + \widetilde{p_j}}{\widetilde{p_j}} \end{equation}
     where $wait_j$ is the time job $j$ has been waiting until the time at which the decision is taken.
-  \item SEXP: Smallest Expansion Factor First
+    This corresponds the the value of the stretch(or slowdown) where the user runtime estimate
+    is used.
+  \item SEXP: Smallest Expansion Factor First 
   \item LRF: Largest Ratio $\frac{\widetilde{p_j}}{q_j}$ First
   \item SRF: Smallest Ratio First
-  \item LAF: Largest Area $ \widetilde{p_j} \times q_j$ First
+  \item LAF: Largest Area $ \widetilde{p_j} \times q_j$ First (often called "Total Resources")
   \item SAF: Smallest Area First
 \end{enumerate}
 
@@ -579,7 +581,11 @@ down or up:
  \rho_t^i \sum_{j=1}^{l(\Delta_t)} \, \mbox{Wait}_j^{P_i} \end{equation}
 %
 where $\rho_t^i$ is uniformly sampled in the interval $[0.80,1.20]$, thus adding a
-+/- 20\% multiplicative noise on the waiting time estimated by the simulator. The overall cost
++/- 20\% multiplicative noise on the waiting time estimated by the simulator.
+This value is taken as to be sufficiently larger than values previously reported,
+see e.g. ~\cite{dutot:hal-01333471} which reports 2 percent variations of the
+simulated metric compared to the metric on the real systems.
+The overall cost
 is then defined in the same way as before, leading to:
 %
 \begin{equation} \label{eq:tot-cost-noisy} w(\rightarrow T;P_i) =
@@ -836,19 +842,26 @@ EASY($P,\Theta=40h$) using the following strategies:
     \textit{a-posteriori} known policy;
 
   \item For all the above strategies based on exact simulation (referred to as
-    ``Simulated feedback'' in the remainder), on noisy simulation (referred to as
-    ``Noisy Simulated Feedback'') and on $\epsilon$-greedy exploration (referred to as
-    ``Bandit Feedback''), we experiment with two policy periods: $\Delta \in
-    \left\{ 1 \text{day},1 \text{week} \right\}$. This choice is a consequence
-    of the natural rhythm of human activity: Daily or weekly simulation periods
-    seem to ease comparing of performance between two periods.
-    Indeed, arbitrary period values would needlessly increase the variability
-    of the cost metric. For the bandit feedback strategy, $\epsilon$ is set to $0.5$ and
-    $\lambda$ to $1$. This means that we do not use any decay in the estimation
-    of the overall cost. Choosing to eliminate decay in this experimental
+    ``Simulated feedback'' in the remainder), on noisy simulation (referred to
+    as ``Noisy Simulated Feedback'') and on $\epsilon$-greedy exploration
+    (referred to as ``Bandit Feedback''), we experiment with two policy
+    periods: $\Delta \in \left\{ 1 \text{day},1 \text{week} \right\}$. This
+    choice is a consequence of the natural rhythm of human activity: Daily or
+    weekly simulation periods seem to ease comparing of performance between two
+    periods.  Indeed, arbitrary period values would needlessly increase the
+    variability of the cost metric. For the bandit feedback strategy, $\lambda$
+    is set to $1$. This means that we do not use any decay in the estimation of
+    the overall cost. Choosing to eliminate decay in this experimental
     validation is natural since our resampled data is in a stationary regime
-    \textit{by construction}, as explained in~\ref{ssub:resampling}. The choice
-    of $\epsilon=0.5$ is a reasonable default;
+    \textit{by construction}, as explained in~\ref{ssub:resampling}. The
+    $\epsilon$ hyperparameter will be set at a value of $0.1$ for all traces, which is the
+    result of a leave-one out majority vote selection process on
+    $[0.1,0.3,0.5,0.7,0.9]$. In this process, one trace among the 7
+    from Table~\ref{tab:logs} is taken out, and the most frequent best
+    hyperparameter value is used. Table~\ref{tab:hyperparam} outlines the
+    result of this cross-validation. Assuming workload traces are I.I.D, This
+    ensures that the reported results are fair with respect to the situation
+    where the reader of the study would implement the strategy directly.
 
   \item Lastly, an additional ``Random'' strategy is used as a reference point,
     with, as before, $\Delta \in \left\{ 1 \text{day},1 \text{week} \right\}$.
@@ -856,6 +869,26 @@ EASY($P,\Theta=40h$) using the following strategies:
     $\left\{P_1 , \cdots, P_{12} \right\}$ during every period $\Delta_t$.
 
 \end{itemize}
+
+\begin{table}[]
+  \centering
+  \ra{1.3}
+  \caption{Hyper-parameter leave-one-out selection for $\epsilon$.}
+  \label{tab:hyperparam}
+  \begin{tabular}{@{}lr@{}}
+    \hline
+    Name          & best $\epsilon$\\
+    \hline
+    KTH-SP2       & 0.1 \\
+    CTC-SP2       & 0.1 \\
+    SDSC-SP2      & 0.1 \\
+    SDSC-BLUE     & 0.1 \\
+    ANL-Intrepid  & 0.3 \\
+    CEA-Curie     & 0.3 \\
+    Unilu-Gaia    & 0.1 \\
+    \hline
+  \end{tabular}
+\end{table}
 
 The experimental validation uses of 7 traces $\times$ 60 resamples $\times$
 (12+2+2+2) algorithms, which correspond to 12600 scheduling simulations spanning
