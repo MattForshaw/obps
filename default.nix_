@@ -1,0 +1,48 @@
+with import <nixpkgs> {};
+let 
+ texlive = pkgs.texlive.combine {
+    inherit (pkgs.texlive)
+    everypage
+    scheme-full
+    xkeyval
+    times
+    courier
+    wrapfig
+    xcolor
+    booktabs
+    caption
+    siunitx
+    fixme
+    todo
+    tabulary
+    algorithms
+    algorithmicx
+    acmart
+    totpages
+    environ
+    trimspaces
+    ncctools
+    comment
+    dirtree ;
+  };
+  callPackage = pkgs.lib.callPackageWith (pkgs);
+  fixed = callPackage ./class2sched/fixed.nix { };
+in
+stdenv.mkDerivation rec {
+  name="paper";
+  src = ./.;
+  buildPhase = ''
+    mkdir -p tables
+    cp ${fixed}/o.bsld.tex tables/bsld.tex
+    cp ${fixed}/o.wait.tex tables/wait.tex
+    cp ${fixed}/o.crossbsl.tex tables/crossbsl.tex
+    cp ${fixed}/o.crosswai.tex tables/crosswai.tex
+    make
+  '';
+  installPhase = ''
+    mkdir $out
+    cp paper.pdf $out
+    '';
+  buildInputs = [ texlive pkgs.dia fixed ];
+  #propagatedBuildInputs = [ fixed];
+}

@@ -556,7 +556,21 @@ estimate of the waiting time of the policy over the preceding periods) so that
 the length of the period has little impact here. The only bias comes from the
 boundary states of the simulation. Indeed, we run simulations from an empty
 system and wait for the system to be empty when job submissions cease at the
-end of the submission period.
+end of the submission period. Figure~\ref{fig:resimu}
+
+\begin{figure*}[]
+  \centering
+  \input{dia/_build/algo.tex}
+
+  \caption{Illustration of the online simulation-based strategy. Every week,
+  the wokload from the past week is used to run simulations using every
+  reordering policy. The "model" $w$ is updated according
+  to~\eqref{eq:tot-cost-exact} (or~\eqref{eq:tot-cost-noisy} in the Noisy case
+  from Section~\ref{sub:noisy}) and the policy for the next week is chosen
+  according to~\eqref{eq:select-exact}}.
+
+  \label{fig:resimu}
+\end{figure*}
 
 Furthermore, in the context of this study and as detailed in
 Section~\ref{sec:experiments}, we rely on averages over several execution
@@ -565,7 +579,9 @@ policies and policy selection strategies. Such traces are typically obtained by
 simulation. Using the same simulator for generating the traces and estimating
 the cost as defined in Eqs \eqref{eq:cost-exact} and \eqref{eq:tot-cost-exact}
 would however be too optimistic and would represent an upper bound on what can
-be achieved by a selection strategy based on simulation. In order to have a
+be achieved by a selection strategy based on simulation. 
+
+In order to have a
 more realistic estimate of the behavior of a selection strategy based on
 simulation, we introduce noise in the simulator, as described below.
 
@@ -667,6 +683,7 @@ strategy:
 
 %
 \begin{itemize}
+    \label{alg:epsilon}
 \item With probability $(1-\epsilon)$, select the policy $P$ that minimizes the cost over previous time periods (exploitation mode):
 %
 \begin{equation}
@@ -677,10 +694,11 @@ P = \mbox{argmin}_{P_i, 1 \le i \le 12} w(\rightarrow T;P_i)
 \item With probability $\epsilon$, select a policy $P_i, \, 1 \le i \le 12$, at random (exploration mode).
 \end{itemize}
 
-Several studies study the decay of $\epsilon$ over time, the exploration being
-less important once the estimates for the different policies are reliable
-\cite{Tokic:2010}. This strategy has however not been beneficial in our case.
-We believe this is due to the properties of the traces we use, as explained in
+Figure~\ref{fig:bandit} illustrates this process. Several studies study the
+decay of $\epsilon$ over time, the exploration being less important once the
+estimates for the different policies are reliable \cite{Tokic:2010}. This
+strategy has however not been beneficial in our case. We believe this is due to
+the properties of the traces we use, as explained in
 Section~\ref{sec:experiments}. The $\epsilon$-greedy strategy is known to be
 outperformed in terms of regret by other classical algorithms such as the UCB
 or EXP family of algorithms. See~\cite{bubnow} for a precise definition and
@@ -690,6 +708,21 @@ in advance. While the usual doubling tricks can be devised to go around
 sequential issues of scale with good asymptotical performance, they ruin
 performance in practice. Accordingly, we only perform experiments using the
 simple $\epsilon$-greedy method.
+
+\begin{figure*}[]
+  \centering
+  \input{dia/_build/bandit.tex}
+
+  \caption{Illustration of the bandit-based strategy. Every week,
+  the wokload from the past week is used to run simulations using every
+  reordering policy. The "model" $w$ is updated according
+  to~\eqref{eq:tot-cost-greedy} and the policy for the next week is chosen
+  according to~\eqref{alg:epsilon}. We denote by $P_{\mbox{bandit},t}$ the 
+  policy chosen by the bandit at week $t$.
+  }.
+
+  \label{fig:bandit}
+\end{figure*}
 
 \section{Experiments}
 \label{sec:experiments}
