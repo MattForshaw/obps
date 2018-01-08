@@ -81,7 +81,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Online (Bandit) Policy Selection for EASY-Backfilling}
+\title{Online Tuning of EASY-Backfilling using Queue Reordering Policies.}
 
 \author{
 \IEEEauthorblockN{Eric Gaussier}\\
@@ -106,12 +106,15 @@ denis.trystram@imag.fr}
   considers an online approach to the automatic tuning of the EASY heuristic
   for HPC platforms.  More precisely, we consider the problem of selecting a
   reordering policy for the job queue under several feedback modes. We show via
-  a comprehensive experimental validation on actual logs that noisy feedback
-  (using a simulator, which is necessarily imprecise) recovers existing
+  a comprehensive experimental validation on actual logs that periodic
+  simulation of historical data can be used to recover existing
   \textit{in-hindsight} results that allow to divide the average waiting time
-  by almost 2. Moreover, we show that bandit feedback can be used by an
-  Epsilon-greedy multi-armed bandit algorithm to cut the average waiting time
-  by 40\% without using a simulator.
+  by almost 2. This results holds even when the simulator results are noisy.
+  Moreover, we show that good performances can still be obtained without a
+  simulator, under what is called bandit feedback - when we can only observe
+  the performance of the algorithm that was picked on the live system.  Indeed,
+  a simple multi-armed bandit algorithm can reduce the average waiting
+  time by 40\%.
 
 \end{abstract}
 
@@ -566,10 +569,10 @@ the policy cost defined by Eq.~\eqref{eq:cost-exact} by rescaling it, either
 down or up:
 %
 \begin{equation} \label{eq:cost-noisy} w_{\mbox{noisy}}(t;P_i) =
- \rho \sum_{j=1}^{l(\Delta_t)} \, \mbox{Wait}_j^{P_i} \end{equation}
+ \rho_t^i \sum_{j=1}^{l(\Delta_t)} \, \mbox{Wait}_j^{P_i} \end{equation}
 %
-where $\rho$ is uniformly sampled in the interval $[0.80,1.20]$, thus adding a
-+/- 20\% noise on the waiting time estimated by the simulator. The overall cost
+where $\rho_t^i$ is uniformly sampled in the interval $[0.80,1.20]$, thus adding a
++/- 20\% multiplicative noise on the waiting time estimated by the simulator. The overall cost
 is then defined in the same way as before, leading to:
 %
 \begin{equation} \label{eq:tot-cost-noisy} w(\rightarrow T;P_i) =
@@ -716,12 +719,13 @@ and trace resampling.
 \end{table}
 
 The experimental validation performed in this work uses a mixture of small and
-large systems from different periods. Table~\ref{tab:logs} presents the 7 logs,
-which can all be obtained from the Parallel Workload
-Archive~\cite{Feitelson20142967}. We use the ``cleaned''\cite{pwa-clean} version
-of the logs as per the archive. We impose an additional filtering step to the
-workloads\footnote{This filtering step is available in the reproducible
-workflow\cite{repro} as shell script
+large systems from different periods. These platforms are all targeted by this
+work, since they all are homogenous systems that run a batch scheduler.
+Table~\ref{tab:logs} presents the 7 logs, which can all be obtained from the
+Parallel Workload Archive~\cite{Feitelson20142967}. We use the
+``cleaned''\cite{pwa-clean} version of the logs as per the archive. We impose
+an additional filtering step to the workloads\footnote{This filtering step is
+available in the reproducible workflow\cite{repro} as shell script
 \lstinline[basicstyle=\ttfamily\color{blue}]|misc/strong\_filter|} in order to
 clean erroneous data:
 
@@ -787,10 +791,10 @@ chosen to be present in the week being resampled.  This simple mechanism
 enables us to preserve the dependency within a week.  Although the system state
 may not be independent from one week to an other, we rely on existing
 work~\cite{jsspp17} and assume for these experiments that the system is in a
-stationary state. While we do provide guidelines as how to incorporate tracking
-variant of our algorithms in Section~\ref{sec:online} by introducing a decaying
-discount factor $\lambda$, this will not be studied in the experiments where 
-$\lambda=1$, and is left for future research.
+stationary state. We do provide guidelines as how to incorporate tracking
+into our algorithms in Section~\ref{sec:online} by introducing a decaying
+discount factor $\lambda$. Our experiments use stationary resampled data, 
+and therefore no decay is necessary: $\lambda$ will be equal to $1$.
 
 %Thus,
 %computing an average over the sampled traces at a given time can be related to
@@ -801,7 +805,6 @@ $\lambda=1$, and is left for future research.
 %weeks.
 
 \subsubsection{Experimental Validation}
-
 
 For each of the 7 workloads
 considered, we use the original data to resample 60 traces, each with a length
@@ -845,7 +848,7 @@ EASY($P,\Theta=40h$) using the following strategies:
 
 The experimental validation uses of 7 traces $\times$ 60 resamples $\times$
 (12+2+2+2) algorithms, which correspond to 12600 scheduling simulations spanning
-two years.  This means a total simulated timespan of 25200 years. Moreover,
+two years. This means a total simulated timespan of 25200 years. Moreover,
 both the full-feedback and noisy feedback strategies will also be calling
 simulations as part of their procedure. Indeed, these strategies re-simulate
 the system 12 times at every period $\Delta$, which bumps the total
