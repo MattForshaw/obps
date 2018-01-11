@@ -1,4 +1,4 @@
-all: paper.pdf
+all: paper.pdf 
 
 dia/_build/%.tex: dia/%.dia dia/Makefile
 	cd dia; make
