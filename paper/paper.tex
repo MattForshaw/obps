@@ -197,12 +197,11 @@ a multi-armed bandit also provides reasonable results at a much lower cost,
 reducing the average waiting times by 8\% to 46\% compared to
 EASY-FCFS.
 
-Let us emphasize the main results of this study: While the First-Come,
-First-Serve approach to minimizing the waiting times is a common default
-strategy, it can definitively be outperformed. We show how to automate selection
-of a good alternative policy in two cases (depending on whether a simulator is
-available or not), and provide the difference in performance to be expected
-between both situations.
+Let us emphasize the main results of this study. We show how to select a good
+alternative to the First-Come, First-Serve policy in an online manner. We
+present two automated methods for selecting a good alternative policy in two
+cases (depending on whether a simulator is available or not), and provide the
+difference in performance to be expected between both situations.
 
 \section{Related Work}
 \label{sec:rw}
@@ -548,7 +547,7 @@ distributions where $\lambda$ can be set to 1 to non-stationary distributions
 where the more recent history has to be privileged. As explained in Section
 6.1, in our experiments $\lambda$ is set to 1 as the distributions considered
 are stationary but the reader has to bear in mind that our framework can be use
-on different distributions by resorting to different values of lambda that can
+on different distributions by resorting to different values of $\lambda$ that can
 be set by cross-validation.
 
 One then selects the
