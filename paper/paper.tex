@@ -1068,11 +1068,17 @@ The values appearing in Table~\ref{tab:full} are exactly:
 
 The best values are outlined in bold in the table. These values give the best
 attainable performance in the search set defined in~\ref{subsec:policies}.
-Note that there seems to be some regularity; for instance the SAF policy is remarkably
-inefficient and the LQF policy works very well. However there are traces for which LQF is not optimal. Moreover, these
-are~\textit{a-posteriori} results, which means that we only know
-\textit{post-factum} that this policy would have been better.
+Note that there seems to be some regularity; for instance the SAF policy is
+remarkably inefficient and the LQF policy works very well. However there are
+traces for which LQF is not optimal.  For these machines, ordering jobs by
+decreasing size seems to be more efficient than ordering them by time. This
+study is limited in scope, and these results are possibly different on other
+machines. Moreover, the simulator model is simplistic and the relative order of
+policies may change, for instance when introducing a topology model in the
+simulations. This is however sufficient to study adaptive policies.
 
+These are~\textit{a-posteriori} results, which means that we only know
+\textit{post-factum} that this policy would have been better.
 
 \begin{figure}[]
   \centering

@@ -296,17 +296,22 @@ in Figure 3.
 
 \textbf{Section 6.1.1 traces - I think negative values are just -1 meaning no data is available.}
 
-You are right, we clarified this point in the text (SECTION xx - PAGE xx).\\
+You are right, we clarified this point in the text (Section 6.6.1 - Page 7).\\
 
 \textbf{Section 6.3.1 - I think you can say more about the post-factum results.  Even
 if it is not your focus, it is still interesting that for example ordering
 by size is more beneficial than by time, and that it should be
 largest-first (and the SJF-like scheme is not good).}
 
-Doing this would drown the point in the author's opinion. 
-QUE VEUX-TU DIRE VRAIMENT ICI?
-Good remark, we agree it is an interesting point, which was addressed in our previous publication 'Tuning
-Backfilling Queues' (JSSPP17).
+It is an interesting point, which was addressed in our previous publication
+'Tuning Backfilling Queues' (JSSPP17). Here, we prefer to be cautious. Indeed,
+the high number of simulations in this work forced us to use a simplistic
+simulator model. We can reasonably expect these results to change when adding
+a topology model, or a model of job interference for example. While we believe
+this simple model is sufficient to study the behavior of adaptive policies, we
+prefer not to draw conclusions about the systems themselves from these
+simulations. We added this remark in the text (Section 6.3.1 - page 10).
+
 \medskip
 
   \textbf{Section 6.3.2 FCFS vs. Random: you justify the result be a conjecture that jobs do not pile up in the queue.  
@@ -376,11 +381,16 @@ the static (cross-validated in the set of fixed policies) choice would not be
 really conclusive.  Indeed, the more the number of workload logs, the higher the
 diversity and the more adaptations are needed.
 
-(2) Second, we used a light simulation model. In this model, we do make
+(2) Second, we need to run high number of simulations, and accordingly we used a light simulation model . In this model, we do make
 machines *more* similar to each other by neglecting topological differences. It
 can be reasonably expected that differences between systems should *increase*
 rather than decrease, when moving away from a simplistic model to the real
-systems.
+systems. This reason is also why we don't expand on which fixed strategy is 
+the best. Indeed, the results are probably different when adding a topology model,
+job interference, or an I/O congestion model. We do believe this simple
+model is enough for studying adaptive policies though. We added a remark in 
+the text (Section 6.3.1 - Page 10) 
+
 We modified the present experiments to use leave-one-out cross
 validation in the hyperparameter selection, and we clarified the reasons for
 chosing this experimental protocol.
@@ -397,7 +407,7 @@ Right, a justification was clearly missing, this value is taken as to be
 sufficiently larger than the values previously reported, see e.g. "Batsim: a
 Realistic Language-Independent Resources and Jobs Management Systems Simulator"
 which reports few percents of variation of the simulated metric compared to the
-metric on the real systems. We added this remark in the text.\\
+metric on the real systems. We added this remark in the text (Section 5.2- Page 6).\\
 
 \textbf{Minor comments for improving presentation}
 
