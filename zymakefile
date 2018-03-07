@@ -198,18 +198,18 @@ $(< type="simulated" metaid=*metaids).cumDiffB
 
 cat $(<).select
 | cut -d' ' -f2,3,4,5,6,7
-| sed 's/Inverse Resource Requirement/LQF/g'
-| sed 's/Inverse Expansion Factor/LEXP/g'
-| sed 's/Inverse Job maximum Area/LAF/g'
-| sed 's/Inverse Q\/P ratio/LRF/g'
-| sed 's/Inverse Processing time/LPF/g'
-| sed 's/Inverse Waiting Time/LCFS/g'
-| sed 's/Processing time/SPF/g'
-| sed 's/Waiting Time/SPF/g'
-| sed 's/Expansion Factor/EXP/g'
-| sed 's/Job maximum Area/SAF/g'
-| sed 's/Q\/P ratio/SRF/g'
-| sed 's/Resource Requirement/SQF/g'
+| sed 's/Inverse Resource Requirement/SQF/g'
+| sed 's/Inverse Expansion Factor/SEXP/g'
+| sed 's/Inverse Job maximum Area/SAF/g'
+| sed 's/Inverse Q\/P ratio/SRF/g'
+| sed 's/Inverse Processing time/SPF/g'
+| sed 's/Inverse Waiting Time/SCFS/g'
+| sed 's/Processing time/LPF/g'
+| sed 's/Waiting Time/FCFS/g'
+| sed 's/Expansion Factor/LEXP/g'
+| sed 's/Job maximum Area/LAF/g'
+| sed 's/Q\/P ratio/LRF/g'
+| sed 's/Resource Requirement/LQF/g'
 > $(>).selectf
 
 misc/visu/mosaic.R

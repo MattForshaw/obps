@@ -53,6 +53,7 @@ admit that both have been suggested before.
 \textbf{Last paragraph of 1.2 is the third repetition of this.  It is redundant, despite the fact that some reviewer didn't get
 it.
 }
+You are right. We rephrased this in a more neutral way.
 
 \textbf{In sect 5.1 you explain that you set lambda=1 because due to the resampling the distributions are stationary.  That is
 correct.  But it would have been good to also conduct simulations on the original traces, which are probably not
@@ -60,9 +61,19 @@ stationary, and therefore there is more to gain from switching between policies.
 Also, instead of starting the simulation of each period from an empty system, why not start from the situation at the
 end of the previous period?
 }
+Regarding your first point, good remark, we based this experimental design around previous results
+from "Tuning Backfilling Queues"(JSSPP17) that show some degree of stationarity. We indeed
+expect that non-stationary policy adaptation may allow more improvements (while
+being harder to achieve). We made this clearer in the text.
+
+Your second point is also relevant, yes that should perhaps slightly improve the results.
+But we can see that the 'full feedback' simulated policy here is almost as good as the best
+policy in the set, so we did not worry about this. In a non-stationary case, it may indeed
+be necessary to properly take care of this.
 
 \textbf{Typo at end of 6.1.3: sentence with [24] appears twice.
 }
+Right, we fixed this.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -79,6 +90,10 @@ results is not surprising considering previous results some of which are referen
 noted that the authors do not suggest a specific new scheduling algorithm and show that this algorithm results in
 significant improvements over existing methods.
 }
+We regret that the detailed answer of the previous rebuttal did not convince you. We disagree with this statement. We indeed
+provide a new scheduling algorithm, which adapts to the situation by selecting the correct reordering policy. This algorithm
+results in significant improvements over existing methods.
+Thank you for your in-depth remarks once again. We integrated these into the minor revision.
 
 \textbf{The authors mention "reducing uncertainty" in Section 1.1. It is not clear why this reduction is relevant within the
 manuscript (except as a justification for adding noise?)
@@ -169,6 +184,25 @@ presented online tuning strategies, Full and Bandit. Which strategy is better in
 may be preferable because they are less complicated and run with smaller scheduling overhead. The authors should add
 the discussion to compare LQF and the online tuning strategies.
 }
+
+First of all, we corrected a crucial typographical error in the text. The S and
+L were inverted in both Table 3 and Figure 4. This resolves a blatant
+consistency issue with other publications, most crucially "Tuning Backfilling
+Queues"(JSSPP17).
+
+Indeed, the SQF policy works quite well on the traces considered here on average, and
+under this resampling scheme. The variability however, is high, and it is not the best
+on other traces.
+It would indeed be interesting to have an experimental evaluation of exactly how much
+one gains on average by choosing the bandit over a leave-one-trace-out majority vote policy
+choice.
+
+However, a good estimation of this quantity requires using more traces, and perhaps factoring
+in the topology model of the machines, which should increase the heterogeneity between platforms
+and therefore increase the dependence of the simulation performance on the trace/platform.
+Such a study would be much more tedious.
+Here, we prove the feasibility of the approach. The need for adaptivity is actually understated
+by our simulation approach.
 
 \textbf{The authors conclude that simulation-based strategy is best but the bandit-based strategy is easier to use and cheaper
 to run. How easy and how cheaper can we run the bandit-based strategy? The authors should add the quantitative
