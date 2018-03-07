@@ -86,13 +86,13 @@
 \author{
 \IEEEauthorblockN{Eric Gaussier}\\
 \IEEEauthorblockA{Univ. Grenoble Alpes, CNRS, Grenoble INP, LIG\\
-  eric.gaussier@imag.fr } \\ 
+  eric.gaussier@imag.fr } \\
 \IEEEauthorblockN{J\'er\^ome Lelong}\\
 \IEEEauthorblockA{Univ. Grenoble Alpes, Inria, CNRS, Grenoble INP, LJK\\
-jerome.lelong@imag.fr}  \\ 
+jerome.lelong@imag.fr}  \\
 \IEEEauthorblockN{Valentin Reis, Denis Trystram}\\
 \IEEEauthorblockA{Univ. Grenoble Alpes, Inria, CNRS, Grenoble INP, LIG\\
-denis.trystram@imag.fr}   
+denis.trystram@imag.fr}
 }
 \begin{document}
 
@@ -141,7 +141,7 @@ positive properties such as relative simplicity and prevention of job
 starvation. However, there is still room for improvement. Here, we study how to
 tune the ordering of the submission queues in the frame of the classical
 so-called EASY\footnote{Extensible Argonne Scheduling sYstem
-(EASY)}-Backfilling family of heuristics using two new online approaches. One
+(EASY)}-Backfilling family of heuristics using two online approaches. One
 approach is based on a simulator and the second uses a multi-armed bandit
 algorithm.
 
@@ -168,7 +168,7 @@ that uses 7 actual traces.
 
 \subsection{Contributions}
 
-Our main contribution is to investigate two original methods for learning a
+Our main contribution is to investigate two methods for learning a
 good scheduling policy on a per-system basis. In this work, we focus on the
 average waiting time of the jobs. Each method aims at choosing the best queue
 reordering policy in a fixed search set of semantically diverse options.
@@ -364,7 +364,7 @@ does not delay the unique reservation.
 
 A system administrator may use one or multiple cost metric(s). Our study of
 scheduling performance relies on the waiting times of the jobs, which is one of
-the more commonly used objectives. The waiting time of a job is 
+the more commonly used objectives. The waiting time of a job is
  \begin{equation}
    \textbf{Wait}_j =  start_j-r_j
  \end{equation}
@@ -403,7 +403,7 @@ reorder it at will. We focus on a search space of 12 reordering policies.
     where $wait_j$ is the time job $j$ has been waiting until the time at which the decision is taken.
     This corresponds the the value of the stretch(or slowdown) where the user runtime estimate
     is used.
-  \item SEXP: Smallest Expansion Factor First 
+  \item SEXP: Smallest Expansion Factor First
   \item LRF: Largest Ratio $\frac{\widetilde{p_j}}{q_j}$ First
   \item SRF: Smallest Ratio First
   \item LAF: Largest Area $ \widetilde{p_j} \times q_j$ First (often called "Total Resources")
@@ -585,7 +585,7 @@ policies and policy selection strategies. Such traces are typically obtained by
 simulation. Using the same simulator for generating the traces and estimating
 the cost as defined in Eqs \eqref{eq:cost-exact} and \eqref{eq:tot-cost-exact}
 would however be too optimistic and would represent an upper bound on what can
-be achieved by a selection strategy based on simulation. 
+be achieved by a selection strategy based on simulation.
 
 In order to have a more realistic estimate of the behavior of a selection
 strategy based on simulation, we introduce noise in the simulator, as described
@@ -728,7 +728,7 @@ simple $\epsilon$-greedy method.
   the wokload from the past week is used to run simulations using every
   reordering policy. The "model" $w$ is updated according
   to~\eqref{eq:tot-cost-greedy} and the policy for the next week is chosen
-  according to~\eqref{alg:epsilon}. We denote by $P_{\mbox{bandit},t}$ the 
+  according to~\eqref{alg:epsilon}. We denote by $P_{\mbox{bandit},t}$ the
   policy chosen by the bandit at week $t$.
   }.
 
@@ -852,10 +852,10 @@ chosen to be present in the week being resampled. This simple mechanism enables
 us to preserve the dependency within a week. Although the system state may not
 be independent from one week to an other, as illustrated in~\cite{jsspp17},
 it is reasonable
-to assume that the system is in a stationary state.~\cite{jsspp17} and assume for these experiments that the system is in a
-stationary state. We do provide guidelines as how to incorporate tracking
+to assume that the system is in a stationary state. Indeed,~\cite{jsspp17} performs
+train/test experiments using the same policy space as we use here. We do provide guidelines as how to incorporate tracking
 into our algorithms in Section~\ref{sec:online} by introducing a decaying
-discount factor $\lambda$. In our experiments, we use stationary resampled data, 
+discount factor $\lambda$. In our experiments, we use stationary resampled data,
 and therefore no decay is necessary: $\lambda$ here is set to $1$.
 
 %Thus,
@@ -985,7 +985,7 @@ this reason, the experimental workflow was designed to be executed on
 a single host.
 
 All data from this paper were obtained from the Swf Parallel Workloads
-Archive~\cite{Feitelson20142967}. 
+Archive~\cite{Feitelson20142967}.
 
  All experiments are tied together using zymake~\cite{zymake}, a minimalistic
  workflow system designed for computational experiments\footnote{The zymake system
@@ -1034,7 +1034,7 @@ Eq~\eqref{eq:cum}}
   \label{tab:full}
   \begin{tabular}{@{}lrrrrrrrrrrr@{}}
     \hline
-    Trace        & LCFS  & LPF            & SPF   & LQF            & SQF   & SEXP  & LEXP           & LRF            & SRF   & LAF            & SAF   \\
+    Trace        & LCFS  & SPF            & LPF   & SQF            & LQF   & LEXP  & SEXP           & SRF            & LRF   & SAF            & LAF   \\
     \hline
     KTH-SP2      & -13\% & \textbf{-16\%} & +5\%  & \textbf{-16\%} & +3\%  & -8\%  & -15\%          & -8\%           & -13\% & -12\%          & +15\% \\
     CTC-SP2      & -40\% & -19\%          & -14\% & \textbf{-47\%} & +15\% & -36\% & -19\%          & -38\%          & -12\% & -44\%          & +22\% \\
@@ -1163,15 +1163,15 @@ strategies displayed on the graph:
   \label{tab:strat}
   \begin{tabular}{@{}lrrrrrrrrrrrr@{}}
     \hline
-    Trace        & Best(hindsight) & Random &       & Full           &                & Noisy &       & Bandit & \\
-    \hline                
+    Trace        & Best(hindsight) & & Random       &            &Full                & & Noisy        & & Bandit  \\
+    \hline
     $\Delta$     &        & week   & day   & week           & day            & week  & day   & week   & day \\
-    KTH-SP2      & -16\%  & -6\%   & -8\%  & \textbf{-12}\% & -\textbf{11}\% & -12\% & -12\% & -7\%   & -10\% \\
+    KTH-SP2      & -16\%  & -6\%   & -8\%  & \textbf{-12}\% & 11\% & -\textbf{-12}\% & -\textbf{-12}\% & -7\%   & -10\% \\
     CTC-SP2      & -47\%  & -20\%  & -23\% & \textbf{-44}\% & \textbf{-44}\% & -44\% & -44\% & -26\%  & -31\% \\
-    SDSC-SP2     & -15\%  & -4\%   & -7\%  & \textbf{-13}\% & \textbf{-13}\% & -13\% & -13\% & -5\%   & -8\% \\
+    SDSC-SP2     & -15\%  & -4\%   & -7\%  & \textbf{-13}\% & \textbf{-13}\% & -\textbf{-13}\% & -\textbf{-13}\% & -5\%   & -8\% \\
     SDSC-BLUE    & -32\%  & -12\%  & -14\% & \textbf{-31}\% & \textbf{-31}\% & -30\% & -29\% & -12\%  & -17\% \\
     ANL-Intrepid & -28\%  & -13\%  & -20\% & -22\%          & \textbf{-26}\% & -19\% & -24\% & -13\%  & -20\% \\
-    CEA-Curie    & -57\%  & -35\%  & -42\% & \textbf{-53}\% & -47\%          & -53\% & -48\% & -36\%  & -46\% \\
+    CEA-Curie    & -57\%  & -35\%  & -42\% & \textbf{-53}\% & -47\%          & -\textbf{-53}\% & -48\% & -36\%  & -46\% \\
     Unilu-Gaia   & -62\%  & -29\%  & -31\% & -59\%          & \textbf{-60}\% & -58\% & -58\% & -33\%  & -34\% \\
     \hline
   \end{tabular}
@@ -1186,7 +1186,7 @@ random variant. We make the following observations.
 known fact that the FCFS order is not optimal for optimizing the average
 waiting time objective, and confirms that the search set is well chosen. The
 value of the period length $\Delta$ has an impact on the performance of the
-random policy. Indeed, shorter periods lead to better performance. 
+random policy. Indeed, shorter periods lead to better performance.
 
 \textbf{The Simulated Feedback strategy consistently performs almost as well as the
 best fixed policy.} The values attained by the exact simulation based strategy almost match
@@ -1277,15 +1277,13 @@ policy by 11\% to 60\%. The second one is slightly less efficient with an
 improvement factor of 8\% to 46\%. However, the bandit-based method is easier
 to use and cheaper to run.
 
-There are two directions to extend this work. First, the question of
-the existence of a more efficient selection strategy for bandit feedback for
-these systems is not addressed by this work. Is a simulator really necessary?
-%@Denis: a essayer.. 1 mois de travail pour tester?
-Second, one can't help but wonder what performance could be achieved by extending
-the search space to a wider class of policies. This means studying learning performance using some
-function approximator.
-%@Denis: c'est ce que font vasily et salah de deux manieres differentes.
-%TODO SPLIT IN TWO, MENTION FACTOR ANALYSIS.
+There are three directions to extend this work. First, the question of the
+existence of a more efficient selection strategy for bandit feedback for these
+systems is not addressed by this work. Is a simulator really necessary?
+Second, one can't help but wonder what performance could be achieved by
+extending the search space to a wider class of policies. This means studying
+learning performance using some function approximator.
+
 As both these directions are data-bound, they will require careful application of
 trace resampling techniques to be successful.
 
