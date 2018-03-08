@@ -1,5 +1,6 @@
 \documentclass[]{article}
 
+\usepackage{csquotes}
 \usepackage{listings}
 \usepackage{fullpage}
 \usepackage{dirtree}
@@ -33,7 +34,8 @@
 
 Let us first sincerely thank the reviewers for their relevant and in-depth
 remarks once again. Their comments helped us further the discussion of the
-results, and find a typographical error that passed our scrutiny.
+results, and find a typographical error in the presentation of the results that
+passed our scrutiny.
 
 We detail our answers to rewiewer's comments (bold).
 
@@ -51,6 +53,8 @@ it.
 }
 
 You are right. We rephrased this in a more neutral way.
+
+\medskip
 
 \textbf{In sect 5.1 you explain that you set lambda=1 because due to the resampling the distributions are stationary.  That is
 correct.  But it would have been good to also conduct simulations on the original traces, which are probably not
@@ -71,10 +75,15 @@ But we can see that the 'full feedback' simulated policy here is almost as good 
 policy in the set, so we did not worry about this. In a non-stationary case, it may indeed
 be necessary to properly take care of this.
 
+\medskip
+
+
 \textbf{Typo at end of 6.1.3: sentence with [24] appears twice.
 }
 
 Right, we fixed this.
+
+\medskip
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -92,10 +101,12 @@ noted that the authors do not suggest a specific new scheduling algorithm and sh
 significant improvements over existing methods.
 }
 
-We regret that the detailed answer of the previous rebuttal did not convince you. We disagree with this statement. We indeed
+We regret that the detailed answer to your comments did not convince you. We disagree with this statement. We indeed
 provide a new scheduling algorithm, which adapts to the situation by selecting the correct reordering policy. This algorithm
 results in significant improvements over existing methods.
 We thank you for your in-depth remarks once again. We integrated these comments into the minor revision.
+
+\medskip
 
 \textbf{The authors mention "reducing uncertainty" in Section 1.1. It is not clear why this reduction is relevant within the
 manuscript (except as a justification for adding noise?)
@@ -177,6 +188,7 @@ wokload in Fig. 2 and 3
 
 \section{Reviewer 3}
 
+
 \textbf{I think that the simulation model presented in this paper is carefully created and it shows convincing results.
 However, there are two questions about the discussion for the simulation results:
 }
@@ -187,27 +199,33 @@ may be preferable because they are less complicated and run with smaller schedul
 the discussion to compare LQF and the online tuning strategies.
 }
 
-Right, this discussion is warranted. We added paragraph X.
-
 First of all, we corrected a crucial typographical error in the text that slipped
 our scrutiny at the time of running the build chain for the publication. The S and
 L were inverted in both Table 3 and Figure 4. This resolves a blatant
 consistency issue with other publications, most crucially "Tuning Backfilling
 Queues"(JSSPP17).
 
-Indeed, the SQF policy works quite well on the traces considered here on
-average, and under this resampling scheme. The variability however, is high,
-and it is not the best on other traces.  It would indeed be interesting to have
-an experimental evaluation of exactly how much one gains on average by choosing
-the bandit over a leave-one-trace-out majority vote policy choice.
+You are right, the discussion you suggest is warranted. We added it to
+paragraph \textbf{SQF versus online tuning} in Section 6.3.2:
 
-However, a good estimation of this quantity requires using more traces, and
-perhaps factoring in the topology model of the machines, which should increase
-the heterogeneity between platforms and therefore increase the dependence of
-the simulation performance on the trace/platform. Such a study would be much
-more tedious. Here, we prove the feasibility of the approach. The need for
-adaptivity is actually understated by our simulation approach, but in all
-honesty we don't believe to be able to measure this rigorously.
+\begin{displayquote}
+Table~3 shows that the SQF policy
+works quite well on the traces considered here on average, and under this
+resampling scheme. The variability however, is high, and this policy is not the
+best on all traces. It interesting to have an experimental evaluation of
+exactly how much one gains on average by using an online policy versus a
+leave-one-trace-out majority vote policy choice.  However, a good estimation of
+this quantity is tricky. Indeed, we expect the change in the relative
+performance of policies to increase with two factors. First, simply adding
+workload traces to our selection will naturally show more cases where behavior
+is different. Second, factoring in the topology model of the machines should
+increase the heterogeneity between platforms and therefore increase the
+dependence of the simulation performance on the trace/platform. Such a study
+would be much more tedious. Here the need for adaptivity is actually
+understated by the simulation approach.
+\end{displayquote}
+
+\medskip
 
 \textbf{The authors conclude that simulation-based strategy is best but the bandit-based strategy is easier to use and cheaper
 to run. How easy and how cheaper can we run the bandit-based strategy? The authors should add the quantitative
@@ -215,23 +233,27 @@ discussion how the bandit-based strategy is easy to use and saves cost (or sched
 simulation-based strategies.
 }
 
-Right, we need to make this clearer. We added this discussion to paragraph X.
+Right, we need to make this clearer. We added this discussion to paragraph
+\textbf{SQF versus online tuning} in Section 6.3.2:
 
-In both these cases, the scheduling decisions do not have an overhead, as the
-policy is fixed during the period (one day, or week).
+\begin{displayquote}
+While we can not conclude on how much one gains by not using SQF in this case,
+we can comment on the added complexity and computing overhead of using the
+simulation-based and bandit online strategies. In both these cases, the
+scheduling decisions do not have an overhead, as the policy is fixed during the
+period (one day, or week). The bandit strategy has a negligible computational
+overhead at period end. Its two computational operations are maintaining a
+sequential average and generating a pseudo-random number.  The simulation-based
+strategy requires to simulate the system K times every period end, where K is
+the number of alternative policies considered (here, K=12). Using our
+simulator, This takes a few seconds. Using a more precise simulator with
+topological modeling, one can argue that the overhead is still manageable since
+these simulations can be easily done in parallel. The most important constraint
+is that these simulations should not take too much time compared to the period
+size, as to not delay the policy switch decision too much.
+\end{displayquote}
 
-The bandit strategy has a negligible computational overhead at period end. Its two
-computational operations are maintaining a sequential average and generating a
-pseudo-random number.
-
-The simulation-based strategy requires to simulate the system K times every
-period end, where K is the number of alternative policies considered (here,
-K=12). Using our simulator, This takes a few seconds. Using a more precise
-simulator with topological modeling, one can argue that the overhead is still
-manageable since these simulations can be easily done in parallel. The most
-important constraint is that these simulations should not take too much time
-compared to the period size, as to not delay the policy switch decision too
-much.
+\medskip
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography}
