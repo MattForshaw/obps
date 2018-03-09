@@ -562,7 +562,10 @@ estimate of the waiting time of the policy over the preceding periods) so that
 the length of the period has little impact here. The only bias comes from the
 boundary states of the simulation. Indeed, we run simulations from an empty
 system and wait for the system to be empty when job submissions cease at the
-end of the period (see Figure~\ref{fig:resimu}).
+end of the period (see Figure~\ref{fig:resimu}). Note that starting the simulation
+using the system state at the end of the previous period should improve the results.
+Here it will not be necessary hence we keep the simple version with an empty system.
+However, it may prove useful in the non-stationary case mentionned above.
 
 \begin{figure*}[]
   \centering
@@ -1237,35 +1240,35 @@ the two increasingly dominant policies, LAF and LQF, are the best overall polici
 This means that the estimation converges to the correct point.
 
 \textbf{SQF versus online tuning.}
-Table~\ref{tab:full} shows that the SQF policy
-works quite well on the traces considered here on average, and under this
-resampling scheme. The variability however, is high, and this policy is not the
-best on all traces. It interesting to have an experimental evaluation of
-exactly how much one gains on average by using an online policy versus a
-leave-one-trace-out majority vote policy choice.  However, a good estimation of
-this quantity is tricky. Indeed, we expect the change in the relative
-performance of policies to increase with two factors. First, simply adding
-workload traces to our selection will naturally show more cases where behavior
-is different. Second, factoring in the topology model of the machines should
-increase the heterogeneity between platforms and therefore increase the
-dependence of the simulation performance on the trace/platform. Such a study
-would be much more tedious. Here the need for adaptivity is actually
-understated by the simulation approach.
+Table~\ref{tab:full} shows that the SQF policy works quite well on the traces
+considered here on average, and under this resampling scheme. However, the
+variability is high, and this policy is not the best on all traces. It
+interesting to have an experimental evaluation of exactly how much one gains on
+average by using an online policy versus a leave-one-trace-out majority vote
+policy choice.  However, a good estimation of this quantity is tricky. Indeed,
+we expect the change in the relative performance of policies to increase with
+two factors. First, simply adding workload traces to our selection will
+naturally show more cases with a different behavior. Second, factoring in the
+topology model of the machines should increase the heterogeneity between
+platforms and therefore increase the dependence of the simulation performance
+on the trace/platform. Such a study would be much more ambitious and is beyond
+the scope of this study. Here the need for adaptivity is actually understated
+by the simulation approach.
 
 While we can not conclude on how much one gains by not using SQF in this case,
 we can comment on the added complexity and computing overhead of using the
-simulation-based and bandit online strategies.  In both these cases, the
-scheduling decisions do not have an overhead, as the policy is fixed during the
-period (one day, or week). The bandit strategy has a negligible computational
-overhead at period end. Its two computational operations are maintaining a
+simulation-based and bandit online strategies. In both cases, there is no
+overhead in scheduling decisions as the policy is fixed during the period (one
+day, or week). The bandit strategy has a negligible computational overhead at
+the end of the period. Its two computational operations are maintaining a
 sequential average and generating a pseudo-random number.  The simulation-based
 strategy requires to simulate the system K times every period end, where K is
 the number of alternative policies considered (here, K=12). Using our
-simulator, This takes a few seconds. Using a more precise simulator with
+simulator, this takes a few seconds. Using a more precise simulator with
 topological modeling, one can argue that the overhead is still manageable since
 these simulations can be easily done in parallel. The most important constraint
 is that these simulations should not take too much time compared to the period
-size, as to not delay the policy switch decision too much.
+size, in order not to delay too much the policy switch decision.
 
 \begin{figure}[]
   \centering

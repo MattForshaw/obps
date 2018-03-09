@@ -33,9 +33,9 @@
 \maketitle
 
 Let us first sincerely thank the reviewers for their relevant and in-depth
-remarks once again. Their comments helped us further the discussion of the
-results, and find a typographical error in the presentation of the results that
-passed our scrutiny.
+remarks once again. Their comments helped to further discuss the results, and
+to find a typographical error in the presentation of the results that passed
+our scrutiny.
 
 We detail our answers to rewiewer's comments (bold).
 
@@ -63,17 +63,31 @@ Also, instead of starting the simulation of each period from an empty system, wh
 end of the previous period?
 }
 
-Regarding your first point, good remark, we based this experimental design
-around previous results from "Tuning Backfilling Queues"(JSSPP17) that show
-some degree of stationarity using a train/test procedure. We made this clearer
-in the text.
-We indeed expect that non-stationary policy adaptation may allow more
-improvements (while simultaneously being harder to achieve).
+Regarding your first point, this is a good remark, we based this experimental
+design around previous results from "Tuning Backfilling Queues"(JSSPP17) that
+show some degree of stationarity using a train/test procedure. We clarified
+this in the text.
+We indeed expect that non-stationary policy adaptation may
+allow more improvements (while simultaneously being much harder to achieve).
 
-Your second point is also relevant, yes that should improve the results.
+Your second point is also relevant: starting the simulation at the end of the previous
+period should improve the results.
 But we can see that the 'full feedback' simulated policy here is almost as good as the best
 policy in the set, so we did not worry about this. In a non-stationary case, it may indeed
-be necessary to properly take care of this.
+be necessary to properly take care of this. We added a remark in section 5.1:
+
+\begin{displayquote}
+The above cost directly corresponds to the cumulative waiting time of the
+policy over the preceding periods (more precisely to the cumulative simulated
+estimate of the waiting time of the policy over the preceding periods) so that
+the length of the period has little impact here. The only bias comes from the
+boundary states of the simulation. Indeed, we run simulations from an empty
+system and wait for the system to be empty when job submissions cease at the
+end of the period (see Figure~\ref{fig:resimu}). Note that starting the simulation
+using the system state at the end of the previous period should improve the results.
+Here it will not be necessary hence we keep the simple version with an empty system.
+However, it may prove useful in the non-stationary case mentionned above.
+\end{displayquote}
 
 \medskip
 
@@ -104,84 +118,85 @@ significant improvements over existing methods.
 We regret that the detailed answer to your comments did not convince you. We disagree with this statement. We indeed
 provide a new scheduling algorithm, which adapts to the situation by selecting the correct reordering policy. This algorithm
 results in significant improvements over existing methods.
-We thank you for your in-depth remarks once again. We integrated these comments into the minor revision.
+
+We thank you once again for your in-depth comments which we integrated into the current revision.
 
 \medskip
 
-\textbf{The authors mention "reducing uncertainty" in Section 1.1. It is not clear why this reduction is relevant within the
-manuscript (except as a justification for adding noise?)
-The first paragraph of Section 1.1 is relevant to the content of the manuscript. The study of the manuscript uses old
-traces that are far from extreme scale parallel computing. The relevance to distributed computing is not clear since
-only traces from parallel computers are used.
-}
+%\textbf{The authors mention "reducing uncertainty" in Section 1.1. It is not clear why this reduction is relevant within the
+%manuscript (except as a justification for adding noise?)
+%The first paragraph of Section 1.1 is relevant to the content of the manuscript. The study of the manuscript uses old
+%traces that are far from extreme scale parallel computing. The relevance to distributed computing is not clear since
+%only traces from parallel computers are used.
+%}
 
-\textbf{Why do the authors discuss conservative backfilling in Section 2 although it does not matter in the rest of the
-manuscript?
-What is the meaning of "dependency of scheduling metrics on the workload"? The authors only apply a single scheduling
-metric (average waiting time) and do not discuss such dependency. Why is it important that previous work does not
-address this dependency in the context of this manuscript?
-}
+%\textbf{Why do the authors discuss conservative backfilling in Section 2 although it does not matter in the rest of the
+%manuscript?
+%What is the meaning of "dependency of scheduling metrics on the workload"? The authors only apply a single scheduling
+%metric (average waiting time) and do not discuss such dependency. Why is it important that previous work does not
+%address this dependency in the context of this manuscript?
+%}
 
-\textbf{The authors mention duality between cumulative and maximal scheduling costs. Why is this duality relevant in the
-context of this manuscript? In Section 3.3 the authors claim that "Section 4.2 will outline our approach to address the
-biobjective aspect of this problem". However, Section 4.2. is very brief and does not discuss such aspect. The reviewer
-did not find any discussion in the rest of the manuscript. Altogether not all references cited in the manuscript are
-relevant for the content of the manuscript.
-}
+%\textbf{The authors mention duality between cumulative and maximal scheduling costs. Why is this duality relevant in the
+%context of this manuscript? In Section 3.3 the authors claim that "Section 4.2 will outline our approach to address the
+%biobjective aspect of this problem". However, Section 4.2. is very brief and does not discuss such aspect. The reviewer
+%did not find any discussion in the rest of the manuscript. Altogether not all references cited in the manuscript are
+%relevant for the content of the manuscript.
+%}
 
-\textbf{The design of the study is contradictory: on the one hand, the authors only select a single metric since this metric
-"is one of the more commonly used objectives". On the other hand, they select 12 reordering strategies without giving
-any justification based on the strategy. They simply state that they want the search space "being as semantically
-diverse as possible" without stating that they achieved this goal with the selection of these strategies. Why do they
-need all the 12 strategies and why not using more strategies? Again they only remark that the strategies "include most
-policies from related works that we are aware of." Such justification is hardly sufficient for a scientific study.
-}
+%\textbf{The design of the study is contradictory: on the one hand, the authors only select a single metric since this metric
+%"is one of the more commonly used objectives". On the other hand, they select 12 reordering strategies without giving
+%any justification based on the strategy. They simply state that they want the search space "being as semantically
+%diverse as possible" without stating that they achieved this goal with the selection of these strategies. Why do they
+%need all the 12 strategies and why not using more strategies? Again they only remark that the strategies "include most
+%policies from related works that we are aware of." Such justification is hardly sufficient for a scientific study.
+%}
 
-\textbf{In Section 5, the authors claim that "the distribution of the job submission process does not radically differ between
-consecutive periods." This claim is not true for every period length. For instance, when using 12 hours as period
-length, two consecutive periods may cover day and night with different submission processes.
-}
+%\textbf{In Section 5, the authors claim that "the distribution of the job submission process does not radically differ between
+%consecutive periods." This claim is not true for every period length. For instance, when using 12 hours as period
+%length, two consecutive periods may cover day and night with different submission processes.
+%}
 
-\textbf{The allocation of jobs to periods based on the submission time may be problematic. For instance a long running job may
-be submitted in one period, waiting for execution in the next period and then executing in the next several periods.
-Therefore, it influences several periods. The authors briefly mention such dependencies (Section 5.3) and state that
-there may be a bias without discussing this issue.
-}
+%\textbf{The allocation of jobs to periods based on the submission time may be problematic. For instance a long running job may
+%be submitted in one period, waiting for execution in the next period and then executing in the next several periods.
+%Therefore, it influences several periods. The authors briefly mention such dependencies (Section 5.3) and state that
+%there may be a bias without discussing this issue.
+%}
 
-\textbf{The authors still keep the decaying discount factor $\lambda$ without using it in the study. In an exploratory study, the
-authors can either ignore such factor because it is not relevant (and saying why this claim holds) or they must include
-it into the study.
-}
+%\textbf{The authors still keep the decaying discount factor $\lambda$ without using it in the study. In an exploratory study, the
+%authors can either ignore such factor because it is not relevant (and saying why this claim holds) or they must include
+%it into the study.
+%}
 
-\textbf{The authors introduce a noise factor to deal with imprecision. This way they introduce an approach to model
-imprecision. But they do not show that their model is suitable in reality.
-}
+%\textbf{The authors introduce a noise factor to deal with imprecision. This way they introduce an approach to model
+%imprecision. But they do not show that their model is suitable in reality.
+%}
 
-\textbf{In Section 5.2, the authors claim that the length of the period has little impact here as the cost metric corresponds
-to the cumulative simulated waiting time for each policy. As already mentioned, this may not be true for periods that
-are small compared to the waiting time of jobs.
-}
+%\textbf{In Section 5.2, the authors claim that the length of the period has little impact here as the cost metric corresponds
+%to the cumulative simulated waiting time for each policy. As already mentioned, this may not be true for periods that
+%are small compared to the waiting time of jobs.
+%}
 
-\textbf{Figure 3 does not illustrate the process of the $\epsilon$-greedy strategy since there is no $\epsilon$ in Figure 3.
-}
+%\textbf{Figure 3 does not illustrate the process of the $\epsilon$-greedy strategy since there is no $\epsilon$ in Figure 3.
+%}
 
-\textbf{Section 6.1.1 mentions cores in traces although several of the old traces use machines that do not have multicore
-processors.
-}
+%\textbf{Section 6.1.1 mentions cores in traces although several of the old traces use machines that do not have multicore
+%processors.
+%}
 
-\textbf{The authors use 40 hours as threshold and justify this selection by referring to another publication. The reader does
-not know about the arguments without reading this other publication. Since the design of the study is at the core of
-this manuscript, such justification if not acceptable.
-}
+%\textbf{The authors use 40 hours as threshold and justify this selection by referring to another publication. The reader does
+%not know about the arguments without reading this other publication. Since the design of the study is at the core of
+%this manuscript, such justification if not acceptable.
+%}
 
-\textbf{The authors state that they have simulated a total of 92400 years. However, this absolute figure is not relevant
-without showing the coverage of the problem space.
-}
+%\textbf{The authors state that they have simulated a total of 92400 years. However, this absolute figure is not relevant
+%without showing the coverage of the problem space.
+%}
 
-\textbf{There are only few language problems in the manuscript:
-Software and work are used in the singular form. The authors must adjust the verb correspondingly (Section 1.1)
-wokload in Fig. 2 and 3
-}
+%\textbf{There are only few language problems in the manuscript:
+%Software and work are used in the singular form. The authors must adjust the verb correspondingly (Section 1.1)
+%wokload in Fig. 2 and 3
+%}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -209,20 +224,22 @@ You are right, the discussion you suggest is warranted. We added it to
 paragraph \textbf{SQF versus online tuning} in Section 6.3.2:
 
 \begin{displayquote}
-Table~3 shows that the SQF policy
-works quite well on the traces considered here on average, and under this
-resampling scheme. The variability however, is high, and this policy is not the
-best on all traces. It interesting to have an experimental evaluation of
-exactly how much one gains on average by using an online policy versus a
-leave-one-trace-out majority vote policy choice.  However, a good estimation of
-this quantity is tricky. Indeed, we expect the change in the relative
-performance of policies to increase with two factors. First, simply adding
-workload traces to our selection will naturally show more cases where behavior
-is different. Second, factoring in the topology model of the machines should
-increase the heterogeneity between platforms and therefore increase the
-dependence of the simulation performance on the trace/platform. Such a study
-would be much more tedious. Here the need for adaptivity is actually
-understated by the simulation approach.
+
+Table~3 shows that the SQF policy works quite well on the traces considered
+  here on average, and under this resampling scheme. However, the variability
+  is high, and this policy is not the best on all traces. It interesting to
+  have an experimental evaluation of exactly how much one gains on average by
+  using an online policy versus a leave-one-trace-out majority vote policy
+  choice.  However, a good estimation of this quantity is tricky. Indeed, we
+  expect the change in the relative performance of policies to increase with
+  two factors. First, simply adding workload traces to our selection will
+  naturally show more cases with a different behavior. Second, factoring in the
+  topology model of the machines should increase the heterogeneity between
+  platforms and therefore increase the dependence of the simulation performance
+  on the trace/platform. Such a study would be more ambitious and is beyond the
+  scope of this study. Here the need for adaptivity is actually understated by
+  the simulation approach.
+
 \end{displayquote}
 
 \medskip
@@ -233,24 +250,24 @@ discussion how the bandit-based strategy is easy to use and saves cost (or sched
 simulation-based strategies.
 }
 
-Right, we need to make this clearer. We added this discussion to paragraph
+Right, this point needs a clarification. We added the following discussion to paragraph
 \textbf{SQF versus online tuning} in Section 6.3.2:
 
 \begin{displayquote}
 While we can not conclude on how much one gains by not using SQF in this case,
 we can comment on the added complexity and computing overhead of using the
-simulation-based and bandit online strategies. In both these cases, the
-scheduling decisions do not have an overhead, as the policy is fixed during the
-period (one day, or week). The bandit strategy has a negligible computational
-overhead at period end. Its two computational operations are maintaining a
+simulation-based and bandit online strategies. In both cases, there is no
+overhead in scheduling decisions as the policy is fixed during the period (one
+day, or week). The bandit strategy has a negligible computational overhead at
+the end of the period. Its two computational operations are maintaining a
 sequential average and generating a pseudo-random number.  The simulation-based
 strategy requires to simulate the system K times every period end, where K is
 the number of alternative policies considered (here, K=12). Using our
-simulator, This takes a few seconds. Using a more precise simulator with
+simulator, this takes a few seconds. Using a more precise simulator with
 topological modeling, one can argue that the overhead is still manageable since
 these simulations can be easily done in parallel. The most important constraint
 is that these simulations should not take too much time compared to the period
-size, as to not delay the policy switch decision too much.
+size, in order not to delay too much the policy switch decision.
 \end{displayquote}
 
 \medskip
